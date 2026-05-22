@@ -98,7 +98,7 @@
 			cursor: pointer;
 			font-size: 30px;
 		}
-		
+
 		#joystick-base {
 			position: fixed;
 			left: 40px;
@@ -111,7 +111,6 @@
 			background: #77777777;
 			border: #404040 solid 4px;
 		}
-
 		#joystick-stick {
 			position: absolute;
 
@@ -123,6 +122,21 @@
 
 			border-radius: 50%;
 			background: #999999;
+		}
+		#button-jump {
+			position: fixed;
+			right: 40px;
+			bottom: 40px;
+
+			width: 160px;
+			height: 160px;
+
+			border-radius: 50%;
+			background: #77777777;
+			border: #404040 solid 4px;
+		}
+		#center {
+			
 		}
   </style>
 </head>
@@ -139,6 +153,9 @@
 		</div>
 		<div id="joystick-base">
 			<div id="joystick-stick"></div>
+		</div>
+		<div id="button-jump">
+			<p class="colume" style="font-size: 128px">^</p>
 		</div>
 	</div>
 	<div id="menu">
@@ -189,6 +206,7 @@
 let platform = getUserAgent();
 let isMobile = (platform == "Android" || platform == "iOS");
 
+let keys = {};
 const joystick = {
     x: 0,
     y: 0,
@@ -197,59 +215,63 @@ const joystick = {
 
 const joystick_base = document.getElementById("joystick-base");
 const joystick_stick = document.getElementById("joystick-stick");
+const button_jump = document.getElementById("button-jump");
 if (isMobile) { //-------------------------------------for Mobile
-let dragging = false;
+	let dragging = false;
 
-function updateStick(x, y) {
-    const distance = Math.sqrt(x * x + y * y);
+	function updateStick(x, y) {
+		const distance = Math.sqrt(x * x + y * y);
+		if (distance > joystick.radius) {
+			x = (x / distance) * joystick.radius;
+			y = (y / distance) * joystick.radius;
+		}
 
-    if (distance > joystick.radius) {
-        x = (x / distance) * joystick.radius;
-        y = (y / distance) * joystick.radius;
-    }
+		joystick_stick.style.transform = `translate(${x}px, ${y}px)`;
+		joystick.x = +(x / joystick.radius).toFixed(2);
+		joystick.y = +(-y / joystick.radius).toFixed(2);
+	}
 
-    joystick_stick.style.transform = `translate(${x}px, ${y}px)`;
+	function resetStick() {
+		joystick_stick.style.transform = `translate(0px, 0px)`;
+		joystick.x = 0;
+		joystick.y = 0;
+	}
 
-    joystick.x = +(x / joystick.radius).toFixed(2);
-    joystick.y = +(-y / joystick.radius).toFixed(2);
-}
+	joystick_base.addEventListener("pointerdown", (e) => {
+		dragging = true;
+	});
+	button_jump.addEventListener("pointerdown", (e) => {keys["Space"] = true});
 
-function resetStick() {
-    joystick_stick.style.transform = `translate(0px, 0px)`;
+	window.addEventListener("pointermove", (e) => {
+		if (!dragging) return;
 
-    joystick.x = 0;
-    joystick.y = 0;
-}
+		const rect = joystick_base.getBoundingClientRect();
 
-joystick_base.addEventListener("pointerdown", (e) => {
-    dragging = true;
-});
+		const centerX = rect.left + rect.width / 2;
+		const centerY = rect.top + rect.height / 2;
 
-window.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
+		const x = e.clientX - centerX;
+		const y = e.clientY - centerY;
 
-    const rect = joystick_base.getBoundingClientRect();
+		updateStick(x, y);
+	});
 
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    const x = e.clientX - centerX;
-    const y = e.clientY - centerY;
-
-    updateStick(x, y);
-});
-
-window.addEventListener("pointerup", () => {
-    dragging = false;
-    resetStick();
-});
+	window.addEventListener("pointerup", () => {
+		dragging = false;
+		keys["Space"] = false;
+		resetStick();
+	});
 } else {
 	joystick_base.style.display = "none";
+	button_jump.style.display = "none";
 } //----------------------Mobile step end
 
+let fbss = 0;
 let maxfbss = 0;
+let islaggy = false;
 nicknameInput.placeholder = "Nickname";
-var gameVersion = [0, 3, 1];
+
+var gameVersion = [0, 3, 2];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
@@ -268,8 +290,8 @@ chatInput.maxLength = 250;
 nicknameInput.maxLength = 20;
 
 function runGame() {
-if (!(nicknameInput.value.length >= 3 && nicknameInput.value.length <= 20)) {
-	error.innerHTML = "Nickname's length need be 3 - 20";
+if (!(nicknameInput.value.length >= 3 && nicknameInput.value.length <= nicknameInput.maxLength)) {
+	error.innerHTML = "Nickname's length need be 3 - "+nicknameInput.maxLength;
 	return;
 }
 
@@ -300,6 +322,7 @@ const helpBook = [
 	"/mode (mode) ... - selects console mode (A)",
 	"/tp <(pos)|[(nickname) (nickname|pos)]> - teleports you/player to position/player (A)",
 	"/kick (nickname) - kicks player (A)",
+	"/getid (nickname) - gets player's id (A)",
 	"--------------------------------------------------------------------",
 	"A - Requests console password",
 ];
@@ -326,13 +349,11 @@ canvas.focused = true;
 document.getElementById("chatInput").onfocus = (e) => {canvas.focused = false};
 document.getElementById("chatInput").onblur = (e) => {canvas.focused = true};
 
-const keys = {};
 const camera = {x: 0, y: 0};
 let console_password = localStorage.getItem("console_password") ?? "";
 let console_mode = {mode: ""};
 
 let myframes = 0;
-let fbss = 0;
 
 let mouseX = 0;
 let mouseY = 0;
@@ -380,26 +401,52 @@ document.addEventListener("keydown", (event) => {
 					messageToChat(`Set console mode to ${console_mode.mode}`, "#aaaaaa")
 				}
 			} else if (args[0] == "/tp") {
-				let cmd;
-				if (!isNaN(Number(args[1]))) {cmd = `
-					objects.get(myid).x = ${args[1]}; objects.get(myid).y = ${args[2]}
-				`} else if (!isNaN(Number(args[2]))) {cmd = `
-					objects.forEach((obj, id) => {if (obj.nickname == "${args[1]}") obj.x = ${args[2]}, obj.y = ${args[3]}})
-				`} else {cmd = `
+				let cmd = `let myobj = objects.get(myid);`;
+				if (!isNaN(parseInt(args[1]))) {cmd += `
+					myobj.x = ${args[1]};
+					myobj.y = ${args[2]};
+				`} else if (args[2] == undefined) {cmd += `
+					objects.forEach((obj, id) => {
+						if (obj.nickname == "${args[1]}") {
+							myobj.x = obj.x;
+							myobj.y = obj.y;
+						}
+					})
+				`} else if (!isNaN(parseInt(args[2]))) {cmd += `
+					objects.forEach((obj, id) => {
+						if (obj.nickname == "${args[1]}") {
+							obj.x = ${args[2]};
+							obj.y = ${args[3]};
+						}
+					})
+				`} else {cmd += `
 					let obj1;
 					objects.forEach((obj, id) => {if (obj.nickname == "${args[1]}") obj1 = obj})
-					objects.forEach((obj, id) => {if (obj.nickname == "${args[2]}") {obj1.x = obj.x; obj1.y = obj.y;}})
+					objects.forEach((objtarget, id) => {
+						if (objtarget.nickname == "${args[2]}") {
+							obj1.x = objtarget.x;
+							obj1.y = objtarget.y;
+						}
+					})
 				`};
 				sendtows({type: "console", msg: cmd, password: console_password})
 			} else if (args[0] == "/kick") {
 				sendtows({type: "console", msg: `
 					clients.forEach((client, id) => {if (client.nickname == "${args[1]}") client.ws.terminate(4021)})
 				`, password: console_password})
-			} else if (args[0] == "/...") {
+			} else if (args[0] == "/getid") {
 				sendtows({type: "console", msg: `
+					clients.forEach((client, id) => {
+						if (client.nickname == "${args[1]}") {
+							json = {type: "msg", text: id};
+							clients.get(myid).ws.send(JSON.stringify(json));
+						}
+					})
 				`, password: console_password})
 			} else if (args[0] == "/help") {
 				for (let textline of helpBook) {messageToChat(textline)}
+			} else if (args[0] == "/getconsolepassword") { // FAKE
+				//jumpscare()
 			} else if (inputvalue.startsWith('/')) {
 				messageToChat(`Invalid/Unknown command "${inputvalue}"`, "red")
 			} else {
@@ -457,7 +504,25 @@ ws.onmessage = (event) => {
 	} catch (err) {console.error(err)};
 };
 ws.onclose = (event) => {
-	showError("Disconnected", "You are disconnected from game, code: "+event.code+". Restart page.")
+	console.log(event);
+	let reason = "You are disconnected from game, code: "+event.code+". Try refresh page.";
+	if (event.code == 1005) {reason = "You are normally disconnected from game, by close() in client or server closed your connection with code 1005."}
+	else if (event.code == 1006) {reason = "You are disconnected without frame of close. There are can be a million reasons. You can try refresh."}
+	else if (event.code == 1101) {reason = "It's sadly, but you can't play to game because of ban your IP adress. If you are not agree with ban, contact with staffs in <a href=\"https://discord.gg/eQyezGmJHT\">Discord</a>."}
+	else if (event.code == 1102) {reason = "Server suspects you in cheating and closed your connection. Don't cheat game again."}
+	else if (event.code == 1103) {reason = "Server suspects you in "}
+	else if (event.code == 1104) {reason = "Server kicked you while closing."}
+	else if (event.code == 1105) {reason = ""}
+	else if (event.code == 1106) {reason = ""}
+	else if (event.code == 1107) {reason = ""}
+	else if (event.code == 1108) {reason = ""}
+	else if (event.code == 1109) {reason = ""}
+	else if (event.code == 1110) {reason = ""}
+	else if (event.code == 1201) {reason = "You are disconnected by timeout."}
+	showError("Disconnected", reason);
+};
+ws.onerror = (e) => {
+	showError("Error", "Error of connection to game: "+e+". Refresh page or try later.")
 };
 
 gameCanvas.oncontextmenu = () => {
@@ -570,7 +635,7 @@ function update() {
 
 	sendtows({
 		type: "sync",
-		keys,
+		keys: isMobile ? {KeyA: joystick.x < -0.5, KeyD: joystick.x > 0.5, Space: keys["Space"]} : keys,
 		mouseX: mouseX-canvas.width/2,
 		mouseY: mouseY-canvas.height/2,
 	});
@@ -580,16 +645,15 @@ function update() {
 			camera.y += (((myData.visy+obj.height/2)-canvas.height/2)-camera.y)/6;
 		}
 	});
+	if (fbss == maxfbss+600) ws.close(1201);
 }
 
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	objects.forEach((obj, id) => {
-		let oldObj = oldObjects.get(id) ?? {};
+		let oldObj = oldObjects.get(id) ?? {x: myData.x, y: myData.y};
 		let visualObj = {x: 0, y: 0};
-		if (!oldObj.x) oldObj.x = 0;
-		if (!oldObj.y) oldObj.y = 0;
 		visualObj.x = lerp(oldObj.x, obj.x, Math.min(fbss/maxfbss, 1));
 		visualObj.y = lerp(oldObj.y, obj.y, Math.min(fbss/maxfbss, 1));
 		if (obj.type === "player") {
@@ -656,15 +720,9 @@ function draw() {
 			drawImage(images.player_arm, vox, voy-14, aw, ah, rotik2, obj.color.body+transperent, obj.isClipped, true, 5, 12);
 			drawImage(images.player_hand, vox, voy-14, hdw, hdh, rotik2, obj.color.skin+transperent, obj.isClipped, true, 5, 6);
 
-			ctx.fillStyle = obj.color;
-			ctx.font = "20px arial";
-			ctx.textAlign = "center";
-			ctx.fillText(obj.nickname, (visualObj.x+obj.width/2)-camera.x, (visualObj.y-10)-camera.y)
+			drawText(obj.nickname, (visualObj.x+obj.width/2)-camera.x, (visualObj.y-10)-camera.y, "black", "20px arial", "center", "middle");
 		} else if (obj.type === "text") {
-			ctx.fillStyle = obj.textColor;
-			ctx.font = "20px arial";
-			ctx.textAlign = "center";
-			ctx.fillText(obj.text, visualObj.x-camera.x, visualObj.y-camera.y)
+			drawText(obj.text, visualObj.x-camera.x, visualObj.y-camera.y, obj.textColor, "20px arial", "center", "middle");
 		} else {
 			ctx.fillStyle = obj.color;
 			ctx.fillRect(visualObj.x-camera.x, visualObj.y-camera.y, obj.width, obj.height);

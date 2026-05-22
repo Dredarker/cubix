@@ -33,7 +33,7 @@ const clients = new Map();
 // game
 console.log("Initializating the game");
 const badwords = ["[ieе][б6][аеу]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
-const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, 4: 1104, 5: 1105};
+const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, serverclosed: 1104, 4: 1104, 5: 1105};
 
 let gravity = 0.4;
 let newCollisionModel = true;
@@ -449,4 +449,14 @@ wss.on("connection", (ws, req) => {
 
 server.listen(PORT, () => {
   console.log("HTTPS server started on port ", PORT);
+});
+
+process.on('SIGTERM', () => {
+	msg("", clients, "WARNING: Server is updated. Everyone will be kicked in 20 seconds.");
+	setTimeout(() => {
+		clients.forEach((client, id) => {
+			client.ws.close(closecode.serverclosed)
+		});
+		server.close(() => {console.log("Server is closed")});
+	}, 20000);
 });

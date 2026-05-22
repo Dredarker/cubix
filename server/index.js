@@ -33,6 +33,7 @@ const clients = new Map();
 // game
 console.log("Initializating the game");
 const badwords = ["[ieе][б6][аеу]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
+const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, 4: 1104, 5: 1105};
 
 let gravity = 0.4;
 let newCollisionModel = true;
@@ -273,7 +274,7 @@ wss.on("connection", (ws, req) => {
       type: "error",
       message: "ip-ban"
     }));
-    ws.terminate();
+    ws.close(closecode.ban);
     return;
   }
 
@@ -316,12 +317,12 @@ wss.on("connection", (ws, req) => {
 
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
-								ws.terminate();
+								ws.close(closecode.anticheat);
 								return;
 							}
 						});
 						if (!(nickname.length >= 3 && nickname.length <= 20)) {
-							ws.terminate();
+							ws.close(closecode.anticheat);
 							return;
 						}
 
@@ -338,7 +339,7 @@ wss.on("connection", (ws, req) => {
 					}
       	}
 			} else {
-				ws.terminate();
+				ws.close(closecode.anticheat);
 			}
     };
 
@@ -368,7 +369,7 @@ wss.on("connection", (ws, req) => {
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
 				msg(clients.get(myid).nickname, clients, str);
 			} else {
-				ws.terminate();
+				ws.close(closecode.anticheat);
 			}
 		}
 
@@ -386,7 +387,7 @@ wss.on("connection", (ws, req) => {
     }
 
 		if (data.type === "console") {
-			if (data.password !== process.env.console_password) ws.close(4001);
+			if (data.password !== process.env.console_password) ws.close(closecode.unauthorized);
 			let result;
 			try {
 				result = eval(data.msg);

@@ -387,7 +387,7 @@ wss.on("connection", (ws, req) => {
     }
 
 		if (data.type === "console") {
-			if (data.password !== process.env.console_password) ws.close(closecode.unauthorized);
+			if (data.password !== process.env.console_password) ws.terminate();
 			let result;
 			try {
 				result = eval(data.msg);

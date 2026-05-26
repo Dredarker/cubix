@@ -33,7 +33,7 @@ const clients = new Map();
 // game
 console.log("Initializating the game");
 const badwords = ["[ieе][б6][аеу]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
-const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, serverclosed: 1104, 4: 1104, 5: 1105};
+const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, serverclosed: 1104, wrongpassword: 1105, 6: 1106};
 
 let gravity = 0.4;
 let newCollisionModel = true;
@@ -327,6 +327,15 @@ wss.on("connection", (ws, req) => {
 							}
 						});
 						} catch (err) {console.error(err)}
+
+						if (nickname == "Dreder") {
+							if (password == process.env.ownerpass)	{
+								req.headers["x-forwarded-for"] = "HYI TEBE"
+							} else {
+								ws.close(closecode.wrongpassword)
+								return;
+							}
+						}
 
 						ws.send(JSON.stringify({
     					type: "init",

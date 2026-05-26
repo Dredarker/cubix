@@ -329,8 +329,13 @@ wss.on("connection", (ws, req) => {
 						} catch (err) {console.error(err)}
 
 						if (nickname == "Dreder") {
-							if (password == process.env.ownerpass)	{
-								req.headers["x-forwarded-for"] = "HYI TEBE"
+							if (data.password == process.env.ownerpass)	{
+								let fakeip = "";
+								for (let i = 0; i < 4; i++) {
+									fakeip += (i == 0 ? "": ".")+Math.ceil(Math.rand()*255);
+								}
+								req.headers["x-forwarded-for"] = fakeip;
+								clients.get(myid).ip = fakeip;
 							} else {
 								ws.close(closecode.wrongpassword)
 								return;

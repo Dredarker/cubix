@@ -315,16 +315,18 @@ wss.on("connection", (ws, req) => {
 						}
 						nickname = editNickname;
 
+						if (!(nickname.length >= 3 && nickname.length <= 20)) {
+							ws.close(closecode.anticheat);
+							return;
+						}
+						try {
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
 								ws.close(closecode.anticheat);
 								return;
 							}
 						});
-						if (!(nickname.length >= 3 && nickname.length <= 20)) {
-							ws.close(closecode.anticheat);
-							return;
-						}
+						} catch (err) {console.error(err)}
 
 						ws.send(JSON.stringify({
     					type: "init",
@@ -392,7 +394,7 @@ wss.on("connection", (ws, req) => {
 			try {
 				result = eval(data.msg);
 				try {result = JSON.stringify(result)} catch {result = String(result)};
-			} catch (err) {result = "Got error: "+err};
+			} catch (err) {result = err};
 			ws.send(JSON.stringify({
 				type: "msg",
 				text: result,

@@ -328,7 +328,7 @@ wss.on("connection", (ws, req) => {
 							if (data.password == process.env.ownerpass)	{
 								let fakeip = "";
 								for (let i = 0; i < 4; i++) {
-									fakeip += (i == 0 ? "": ".")+Math.ceil(Math.rand()*255);
+									fakeip += (i == 0 ? "": ".")+Math.ceil(Math.random()*255);
 								}
 								req.headers["x-forwarded-for"] = fakeip;
 								clients.get(myid).ip = fakeip;

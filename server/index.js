@@ -33,7 +33,6 @@ const clients = new Map();
 // game
 console.log("Initializating the game");
 const badwords = ["[ieе][б6][аеу]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
-const closecode = {ban: 1101, anticheat: 1102, unauthorized: 1103, serverclosed: 1104, wrongpassword: 1105, 6: 1106};
 
 let gravity = 0.4;
 let newCollisionModel = true;
@@ -274,13 +273,12 @@ wss.on("connection", (ws, req) => {
       type: "error",
       message: "ip-ban"
     }));
-    ws.close(closecode.ban);
+    ws.close(1101);
     return;
   }
 
+	// saving client
   const clientId = uuidv4().slice(0, 16);
-
-  // сохраняем клиента
   clients.set(clientId, {
   	ws,
   	ip,
@@ -316,12 +314,12 @@ wss.on("connection", (ws, req) => {
 						nickname = editNickname;
 
 						if (!(nickname.length >= 3 && nickname.length <= 20)) {
-							ws.close(closecode.anticheat);
+							ws.close(1102);
 							return;
 						}
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
-								ws.close(closecode.anticheat);
+								ws.close(1102);
 								return;
 							}
 						});
@@ -335,7 +333,7 @@ wss.on("connection", (ws, req) => {
 								req.headers["x-forwarded-for"] = fakeip;
 								clients.get(myid).ip = fakeip;
 							} else {
-								ws.close(closecode.wrongpassword)
+								ws.close(1105)
 								return;
 							}
 						}
@@ -353,7 +351,7 @@ wss.on("connection", (ws, req) => {
 					}
       	}
 			} else {
-				ws.close(closecode.anticheat);
+				ws.close(1102);
 			}
     };
 
@@ -383,7 +381,7 @@ wss.on("connection", (ws, req) => {
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
 				msg(clients.get(myid).nickname, clients, str);
 			} else {
-				ws.close(closecode.anticheat);
+				ws.close(1102);
 			}
 		}
 
@@ -469,7 +467,7 @@ process.on('SIGTERM', () => {
 	msg("", clients, "WARNING: Server is updated. Everyone will be kicked in 20 seconds.");
 	setTimeout(() => {
 		clients.forEach((client, id) => {
-			client.ws.close(closecode.serverclosed)
+			client.ws.close(1104)
 		});
 		server.close(() => {console.log("Server is closed")});
 	}, 20000);

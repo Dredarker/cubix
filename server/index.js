@@ -319,7 +319,7 @@ wss.on("connection", (ws, req) => {
 						}
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
-								ws.close(1102);
+								ws.terminate();
 								return;
 							}
 						});

@@ -319,14 +319,12 @@ wss.on("connection", (ws, req) => {
 							ws.close(closecode.anticheat);
 							return;
 						}
-						try {
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
 								ws.close(closecode.anticheat);
 								return;
 							}
 						});
-						} catch (err) {console.error(err)}
 
 						if (nickname == "Dreder") {
 							if (data.password == process.env.ownerpass)	{

@@ -332,6 +332,7 @@ wss.on("connection", (ws, req) => {
 								}
 								req.headers["x-forwarded-for"] = fakeip;
 								clients.get(myid).ip = fakeip;
+								nickname += " [✔]"
 							} else {
 								ws.close(1105)
 								return;

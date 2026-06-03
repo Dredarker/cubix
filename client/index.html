@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 	<meta charset="UTF-8">
-	<title>Cubic Build</title>
+	<title>Cubix</title>
 	<style>
 		body {
 			margin: 0px;
@@ -159,21 +159,21 @@
 		</div>
 	</div>
 	<div id="menu">
-		<b id="title">Cubic Build</b>
+		<b id="title">Cubix</b>
 		<i id="version">v0.0</i>
 		<div class="block">
 			<div class="block colume">
 				<div class="block">
 					<div class="block">
-						<input id="nicknameInput"/><input type="button" onclick="runGame()" value="Play"/>
+						<div>
+							<input id="nicknameInput"/>
+							<input type="button" onclick="runGame()" value="Play"/>
+						</div>
+						<input id="passwordInput"/>
 					</div>
-					<div class="block">
-						<b style="color:red" id="error"></b>
-					</div>
+					<b class="block" style="color:red" id="error"></b>
 				</div>
-				<div class="block" style="margin: 6px">
-					<b>COLORS</b>
-				</div>
+				<b class="block" style="margin: 6px">COLORS</b>
 				<div id="colorEdit" class="block">
 					<div class="inline">
 						<input id="colorHairInput" type="color"/><p>Hair</p>
@@ -218,7 +218,6 @@ const joystick_stick = document.getElementById("joystick-stick");
 const button_jump = document.getElementById("button-jump");
 if (isMobile) { //-------------------------------------for Mobile
 	let dragging = false;
-
 	function updateStick(x, y) {
 		const distance = Math.sqrt(x * x + y * y);
 		if (distance > joystick.radius) {
@@ -230,18 +229,15 @@ if (isMobile) { //-------------------------------------for Mobile
 		joystick.x = +(x / joystick.radius).toFixed(2);
 		joystick.y = +(-y / joystick.radius).toFixed(2);
 	}
-
 	function resetStick() {
 		joystick_stick.style.transform = `translate(0px, 0px)`;
 		joystick.x = 0;
 		joystick.y = 0;
 	}
-
 	joystick_base.addEventListener("pointerdown", (e) => {
 		dragging = true;
 	});
 	button_jump.addEventListener("pointerdown", (e) => {keys["Space"] = true});
-
 	window.addEventListener("pointermove", (e) => {
 		if (!dragging) return;
 
@@ -255,7 +251,6 @@ if (isMobile) { //-------------------------------------for Mobile
 
 		updateStick(x, y);
 	});
-
 	window.addEventListener("pointerup", () => {
 		dragging = false;
 		keys["Space"] = false;
@@ -266,10 +261,12 @@ if (isMobile) { //-------------------------------------for Mobile
 	button_jump.style.display = "none";
 } //----------------------Mobile step end
 
+let server = "";
 let fbss = 0;
 let maxfbss = 0;
 let islaggy = false;
 nicknameInput.placeholder = "Nickname";
+passwordInput.placeholder = "Password (if you're Admin)";
 
 var gameVersion = [0, 3, 2];
 version.innerHTML = "v"+gameVersion.join(".");
@@ -458,10 +455,12 @@ document.addEventListener("keydown", (event) => {
 });
 
 const ws = new WebSocket("wss://game-server-3k6f.onrender.com/");
+server = ws;
 ws.onopen = (e) => {
 	sendtows({
 		type: "join",
 		nickname: document.getElementById("nicknameInput").value,
+		password: document.getElementById("passwordInput").value,
 		color: {
 			hair: colorHairInput.value,
 			skin: colorSkinInput.value,
@@ -645,7 +644,7 @@ function update() {
 			camera.y += (((myData.visy+obj.height/2)-canvas.height/2)-camera.y)/6;
 		}
 	});
-	if (fbss == maxfbss+600) ws.close(1201);
+	if (fbss == maxfbss+600 && ws.readyState == 1) ws.close(1201);
 }
 
 function draw() {

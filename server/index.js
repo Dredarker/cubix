@@ -184,7 +184,7 @@ function findNearestPlayer(npc, maxDist = 10000) {
   return nearest;
 }
 
-function Obj(x, y, width, height, mode, type, color = "black", health = 1/0) {
+function Obj(x, y, width, height, mode, type, color = "black", health = 1/0, inventory = [], inventorysize = 1) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -195,6 +195,8 @@ function Obj(x, y, width, height, mode, type, color = "black", health = 1/0) {
 	this.type = type;
 	this.color = color;
 	this.health = health;
+	this.inventory = inventory || [];
+	this.inventorysize = inventorysize;
 	this.onGround = false;
 }
 
@@ -205,6 +207,7 @@ function Player(nickname, speed, jumpPower, obj) {
 	this.nickname = nickname;
 	this.speed = speed;
 	this.jumpPower = jumpPower;
+	this.selSlot = 0;
 }
 
 function createNPC(name, x, y, color = {}) {
@@ -267,7 +270,9 @@ function server_sync() {
 		tmpobj.onGround = obj.onGround;
 		tmpobj.type = obj.type;
 		tmpobj.color = obj.color;
-		tmpobj.hp = Math.round(obj.health);
+		if (id == obj.id) {
+			tmpobj.hp = Math.round(obj.health);
+		}
 		if (obj.nickname) tmpobj.nickname = obj.nickname;
 		if (obj.text) tmpobj.text = obj.text;
 		if (obj.textColor) tmpobj.textColor = obj.textColor;
@@ -327,12 +332,12 @@ function updateNPCs() {
   });
 }
 let frames = 0;
-let framestosync = 0;
+let framestosync = 3;
 let iferrorframestotryagain = 0;
 let fps = 60;
 
 function gameLoop() {
-	framestosync = Math.floor((objects.size+3)/5);
+	if (optimizeSyncron) framestosync = Math.floor((objects.size+3)/5);
 	frames++;
 
 	if (iferrorframestotryagain <= 0) {
@@ -357,6 +362,7 @@ setInterval(gameLoop, 1000 / fps);
 console.log("The game was successful initializated");
 
 // server
+let optimizeSyncron = true;
 wss.on("connection", (ws, req) => {
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
@@ -388,6 +394,8 @@ wss.on("connection", (ws, req) => {
 		clients.forEach((clientData, id) => {
 			if (clientData.ws === ws) myid = id;
 		});
+		let myobj = objects.get(myid);
+		let myclient = clients.get(myid);
 
 		let data;
     try {
@@ -440,7 +448,7 @@ wss.on("connection", (ws, req) => {
 							nickname,
  						}));
 						clients.get(id).nickname = nickname;
-						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100)));
+						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100, ["pickaxe", "pistol"], 4)));
 						msg("", clients, `${nickname} connected to game`);
 						clients.get(id).joined = true;
 						break;
@@ -456,8 +464,8 @@ wss.on("connection", (ws, req) => {
         objects.forEach((obj, objId) => {
 					if (objId === myid) {
 						let keys = data.keys;
-						clients.get(myid).mouseX = data.mouseX;
-						clients.get(myid).mouseY = data.mouseY;
+						myclient.mouseX = data.mouseX;
+						myclient.mouseY = data.mouseY;
 						let tmpspeed = obj.speed * (obj.onGround ? 1 : 0.1);
 
 						if (keys["KeyA"]) obj.vx += -tmpspeed;
@@ -483,9 +491,9 @@ wss.on("connection", (ws, req) => {
 
     if (data.type === "getclients") {
       if (ws.readyState === WebSocket.OPEN) {
-        let clientsIds = [];
-        for (let i of clients.keys()) {
-          clientsIds.push(i);
+        let clientsNicknames = [];
+        for (let client of clients.values()) {
+          clientsNicknames.push(client.nickname);
         }
         ws.send(JSON.stringify({
           type: "getclients",
@@ -507,39 +515,48 @@ wss.on("connection", (ws, req) => {
 			}))
 		};
 
-		if (data.type === "i_break") {
-			let x = objects.get(myid).x + objects.get(myid).width/2 + clients.get(myid).mouseX;
-			let y = objects.get(myid).y + objects.get(myid).height/2 + clients.get(myid).mouseY;
-			objects.forEach((obj, id) => {
-				if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
-			})
-		};
-
-		if (data.type === "i_build") {
-			if (!["box", "platform"].includes(data.objtype)) return
-			let width = 0;
-			let height = 0;
-			let color = "black";
-
-			if (data.objtype == "platform") {
-				width = 50;
-				height = 25;
-				color = "gray";
-			} else {
-				width = 50;
-				height = 50;
+		if (data.type === "interact_LMB") {
+			if (myobj.inventory[myobj.selSlot] == "pickaxe") {
+				let x = myobj.x + myobj.width/2 + clients.get(myid).mouseX;
+				let y = myobj.y + myobj.height/2 + clients.get(myid).mouseY;
+				objects.forEach((obj, id) => {
+					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
+				})
 			}
+		}
 
-			let x = objects.get(myid).x + objects.get(myid).width/2 + clients.get(myid).mouseX;
-			let y = objects.get(myid).y + objects.get(myid).height/2 + clients.get(myid).mouseY;
-			x = Math.floor(x/width)*width;
-			y = Math.floor(y/height)*height;
+		if (data.type === "interact_RMB") {
+			if (myobj.inventory[myobj.selSlot] == "placer") {
+				if (!["box", "platform"].includes(data.objtype)) return
+				let width = 0;
+				let height = 0;
+				let color = "black";
 
-			let cursorInObjs = false;
-			objects.forEach((obj, id) => {
-				if (posInObj(x+width/2, y+height/2, obj)) {cursorInObjs = true};
-			});
-			if (!cursorInObjs) objects.set(Math.floor(Math.random() * 100000), new Obj(x, y, width, height, "static", data.objtype, color));
+				if (data.objtype == "platform") {
+					width = 50;
+					height = 25;
+					color = "gray";
+				} else {
+					width = 50;
+					height = 50;
+				}
+
+				let x = objects.get(myid).x + objects.get(myid).width/2 + clients.get(myid).mouseX;
+				let y = objects.get(myid).y + objects.get(myid).height/2 + clients.get(myid).mouseY;
+				x = Math.floor(x/width)*width;
+				y = Math.floor(y/height)*height;
+
+				let cursorInObjs = false;
+				objects.forEach((obj, id) => {
+					if (posInObj(x+width/2, y+height/2, obj)) {cursorInObjs = true};
+				});
+				if (!cursorInObjs) objects.set(Math.floor(Math.random() * 100000), new Obj(x, y, width, height, "static", data.objtype, color));
+			}
+		};
+		if (data.type === "interact_swslot") {
+			if (data.slot < 0) {myobj.selSlot = 0}
+			else if (data.slot > myobj.inventoryslot) {myobj.selSlot = myobj.inventoryslot}
+			else myobj.selSlot = data.slot;
 		};
   });
 

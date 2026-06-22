@@ -82,10 +82,10 @@ function update() {
 			objRealX2 = obj2.x+obj2.width/2;
 			objRealY2 = obj2.y+obj2.height/2;
 
-			objRelativeX1 = (objRealX1 - objRealX2) * (obj2.width / 100);
-			objRelativeY1 = (objRealY1 - objRealY2) * (obj2.height / 100);
+			objRelativeX1 = (objRealX1 - objRealX2) * (obj1.width / 100);
+			objRelativeY1 = (objRealY1 - objRealY2) * (obj1.height / 100);
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
-				if (newCollisionModel) {
+				if (newCollisionModel) { // new collision
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 					if (objRelativeY1 < 0) {
 						if (obj1.vy > 12) obj1.health -= obj1.vy;
@@ -108,7 +108,7 @@ function update() {
 						obj1.x = obj2.x + obj2.width;
 					}
 				}
-				} else {
+				} else { // old collision
 				if (objInRegion(obj1, obj2.x+5, obj2.y, obj2.width-10, obj2.height/2)) {
 					if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
 					obj1.vy /= 4;

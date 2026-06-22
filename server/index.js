@@ -309,7 +309,7 @@ function updateNPCs() {
   	  	obj.vy = obj.jumpPower;
   		}
 		} else {
-    	const target = findNearestPlayer(npc);
+    	const target = findNearestPlayer(obj);
     	if (!target) return;
 
     	if (target.x < npc.x) {

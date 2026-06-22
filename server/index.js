@@ -309,19 +309,19 @@ function updateNPCs() {
   	  	obj.vy = obj.jumpPower;
   		}
 		} else {
-    	const target = findNearestPlayer(obj);
+    	const target = findNearestPlayer(obj, 700);
     	if (!target) return;
 
-    	if (target.x < npc.x) {
-    	  npc.vx -= npc.speed;
+    	if (target.x < obj.x) {
+    	  obj.vx -= obj.speed;
 	    } else {
-    	  npc.vx += npc.speed;
+    	  obj.vx += obj.speed;
     	}
     	if (
-      	npc.onGround &&
-      	target.y + 40 < npc.y
+      	obj.onGround &&
+      	target.y + 40 < obj.y
     	) {
-      	npc.vy = npc.jumpPower;
+      	obj.vy = obj.jumpPower;
     	}
 		}
   });

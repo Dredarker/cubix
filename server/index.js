@@ -39,12 +39,13 @@ let gravity = 0.4;
 let newCollisionModel = true;
 
 const objects = new Map();
-objects.set("bottom", new Obj(-500000, 100, 1000000, 10000, "static", "box"));
-objects.set("text", new Text("Spawn", "black", new Obj(50, -100, 0, 0, "none", "text")));
+objects.set("top", new Obj(-2500, -5000, 5000, 3000, "static", "box"));
+objects.set("bottom", new Obj(-2500, 5000, 5000, 3000, "static", "box"));
+objects.set("left", new Obj(-2500, -5000, 3000, 5000, "static", "box"));
+objects.set("right", new Obj(2500, -5000, 3000, 5000, "static", "box"));
+objects.set("text", new Text("Here a spawn", "black", new Obj(50, -4800, 0, 0, "none", "text")));
 
-for (let i = 1; i <= 4; i++) {
-	createNPC("Bot "+i, i*32+500, -200);
-}
+for (let i = 1; i <= 4; i++) {createNPC("Bot "+i, i*24, -4900)};
 
 function update() {
 	objects.forEach((obj, name) => {
@@ -211,8 +212,8 @@ function createNPC(name, x, y, color = {}) {
 
   const npc = new Player(
 		name,
-    1.4,
-    -11,
+    0.7,
+    -10,
     new Obj(
       x,
       y,
@@ -262,8 +263,8 @@ function server_sync() {
   	tmpobj.y = Math.round(obj.y);
   	tmpobj.width = obj.width;
   	tmpobj.height = obj.height;
-  	tmpobj.vx = obj.vx;
-  	tmpobj.vy = obj.vy;
+  	tmpobj.vx = Math.round(obj.vx);
+  	tmpobj.vy = Math.round(obj.vy);
 		tmpobj.onGround = obj.onGround;
 		tmpobj.type = obj.type;
 		tmpobj.color = obj.color;
@@ -290,7 +291,7 @@ function updateNPCs() {
   	if (!obj.isNPC) return;
   	obj.aiTimer++;
 		if (obj.aiTimer > 600) {
-			obj.randomAI = Math.round(Math.random()*0)+1
+			obj.randomAI = Math.round(Math.random()*1)+1
 			obj.aiTimer = 0;
 
 			obj.direction = Math.random()*2-1;

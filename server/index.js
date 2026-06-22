@@ -224,6 +224,7 @@ function createNPC(name, x, y, color = {}) {
     )
   );
   npc.isNPC = true;
+	npc.spidor = 0;
   npc.aiTimer = 0;
   npc.direction = 1;
   objects.set(id, npc);

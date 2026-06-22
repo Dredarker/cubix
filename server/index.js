@@ -340,6 +340,7 @@ function gameLoop() {
 			msg("", clients, err);
 		}
 	}
+	updateNPCs();
 	update();
 	if (iferrorframestotryagain <= 0) {
 		try {customUpdate()} catch (err) {

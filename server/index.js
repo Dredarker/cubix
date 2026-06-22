@@ -227,6 +227,7 @@ function createNPC(name, x, y, color = {}) {
   npc.isNPC = true;
   npc.aiTimer = 0;
   npc.direction = 0;
+	npc.randomAI = 0;
 
   objects.set(id, npc);
   return id;
@@ -295,7 +296,7 @@ function updateNPCs() {
 			obj.direction = Math.random()*2-1;
 		};
 
-		if (randomAI == 1) {
+		if (obj.randomAI == 1) {
   		if (obj.aiTimer == 300) {
 				obj.direction = 0;
   		}

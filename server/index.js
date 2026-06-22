@@ -32,7 +32,8 @@ const clients = new Map();
 
 // game
 console.log("Initializating the game");
-const badwords = ["[ieе][б6][аеу]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
+
+const badwords = ["[ieе][б6][аеу][нnтt]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
 
 let gravity = 0.4;
 let newCollisionModel = true;
@@ -40,6 +41,10 @@ let newCollisionModel = true;
 const objects = new Map();
 objects.set("bottom", new Obj(-500000, 100, 1000000, 10000, "static", "box"));
 objects.set("text", new Text("Spawn", "black", new Obj(50, -100, 0, 0, "none", "text")));
+
+for (let i = 1; i <= 4; i++) {
+	createNPC("Bot "+i, 500, -200);
+}
 
 function update() {
 	objects.forEach((obj, name) => {
@@ -157,6 +162,26 @@ function checkUnderCollision(obj) {
 	return boolean;
 }
 
+function findNearestPlayer(npc) {
+	let nearest = null;
+  let bestDist = 400;
+
+  objects.forEach(obj => {
+    if (obj.type !== "player") return;
+    if (obj.isNPC) return;
+
+    const dx = obj.x - npc.x;
+    const dy = obj.y - npc.y;
+    const dist = dx * dx + dy * dy;
+
+    if (dist < bestDist) {
+      bestDist = dist;
+      nearest = obj;
+    }
+  });
+  return nearest;
+}
+
 function Obj(x, y, width, height, mode, type, color = "black", health = 1/0) {
 	this.x = x;
 	this.y = y;
@@ -178,6 +203,31 @@ function Player(nickname, speed, jumpPower, obj) {
 	this.nickname = nickname;
 	this.speed = speed;
 	this.jumpPower = jumpPower;
+}
+
+function createNPC(name, x, y, color = {}) {
+  const id = "npc_" + Math.random().toString(36).slice(2);
+
+  const npc = new Player(
+		name,
+    1.4,
+    -11,
+    new Obj(
+      x,
+      y,
+      24,
+      80,
+      "dynamic",
+      "player",
+      color,
+      100
+    )
+  );
+  npc.isNPC = true;
+  npc.aiTimer = 0;
+  npc.direction = 1;
+  objects.set(id, npc);
+  return id;
 }
 
 function Text(text, textColor, obj) {
@@ -232,6 +282,49 @@ function server_sync() {
 	}
 }
 
+function updateNPCs() {
+	objects.forEach((obj, id) => {
+  	if (!obj.isNPC) return;
+  	obj.aiTimer++;
+		if (obj.aiTimer > 600) {
+			obj.randomAI = Math.round(Math.random()*2)
+			obj.aiTimer = 0;
+		};
+
+		if (randomAI) {
+			if (obj.aiTimer > 600) {
+				let obj.spidor = 0.4;
+    		obj.direction = Math.random()*(obj.spidor*2)-obj.spidor;
+			}
+  		if (obj.aiTimer > 300) {
+				let obj.spidor = 0;
+  		}
+			obj.vx += obj.speed * obj.direction;
+
+  		if (
+    		obj.onGround &&
+	    	Math.random() < 0.01
+  		) {
+  	  	obj.vy = obj.jumpPower;
+  		}
+		} else {
+    	const target = findNearestPlayer(npc);
+    	if (!target) return;
+
+    	if (target.x < npc.x) {
+    	  npc.vx -= npc.speed;
+	    } else {
+    	  npc.vx += npc.speed;
+    	}
+    	if (
+      	npc.onGround &&
+      	target.y + 40 < npc.y
+    	) {
+      	npc.vy = npc.jumpPower;
+    	}
+		}
+  });
+}
 let frames = 0;
 let framestosync = 0;
 let iferrorframestotryagain = 0;

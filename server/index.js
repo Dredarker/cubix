@@ -43,7 +43,7 @@ objects.set("bottom", new Obj(-500000, 100, 1000000, 10000, "static", "box"));
 objects.set("text", new Text("Spawn", "black", new Obj(50, -100, 0, 0, "none", "text")));
 
 for (let i = 1; i <= 4; i++) {
-	createNPC("Bot "+i, 500, -200);
+	createNPC("Bot "+i, i*32+500, -200);
 }
 
 function update() {
@@ -71,6 +71,7 @@ function update() {
 			if (obj1 == obj2) return;
 			if (obj1.mode == "static" || obj1.mode == "none") return;
 			if (obj2.mode == "none") return;
+			if (obj1.type == "player" || obj2.type == "player") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;
@@ -164,7 +165,7 @@ function checkUnderCollision(obj) {
 
 function findNearestPlayer(npc) {
 	let nearest = null;
-  let bestDist = 400;
+  let bestDist = 700;
 
   objects.forEach(obj => {
     if (obj.type !== "player") return;
@@ -225,7 +226,7 @@ function createNPC(name, x, y, color = {}) {
   );
   npc.isNPC = true;
   npc.aiTimer = 0;
-  npc.direction = 1;
+  npc.direction = 0;
 
   objects.set(id, npc);
   return id;
@@ -291,7 +292,7 @@ function updateNPCs() {
 			obj.randomAI = Math.round(Math.random()*0)+1
 			obj.aiTimer = 0;
 
-			obj.direction = Math.random()*2-obj.spidor;
+			obj.direction = Math.random()*2-1;
 		};
 
 		if (randomAI == 1) {

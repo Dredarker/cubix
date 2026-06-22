@@ -39,10 +39,10 @@ let gravity = 0.4;
 let newCollisionModel = true;
 
 const objects = new Map();
-objects.set("top", new Obj(-2500, -5000, 5000, 3000, "static", "box"));
-objects.set("bottom", new Obj(-2500, 5000, 5000, 3000, "static", "box"));
-objects.set("left", new Obj(-2500, -5000, 3000, 5000, "static", "box"));
-objects.set("right", new Obj(2500, -5000, 3000, 5000, "static", "box"));
+objects.set("top", new Obj(-25000, -50000, 50000, 10000, "static", "box"));
+objects.set("bottom", new Obj(-25000, 0, 50000, 10000, "static", "box"));
+objects.set("left", new Obj(-25000, -50000, 10000, 50000, "static", "box"));
+objects.set("right", new Obj(25000, -50000, 10000, 50000, "static", "box"));
 objects.set("text", new Text("Here a spawn", "black", new Obj(50, -4800, 0, 0, "none", "text")));
 
 for (let i = 1; i <= 4; i++) {createNPC("Bot "+i, i*24, -4900)};
@@ -164,9 +164,9 @@ function checkUnderCollision(obj) {
 	return boolean;
 }
 
-function findNearestPlayer(npc) {
+function findNearestPlayer(npc, maxDist = 10000) {
 	let nearest = null;
-  let bestDist = 700;
+  let bestDist = maxDist;
 
   objects.forEach(obj => {
     if (obj.type !== "player") return;
@@ -209,7 +209,6 @@ function Player(nickname, speed, jumpPower, obj) {
 
 function createNPC(name, x, y, color = {}) {
   const id = "npc_" + Math.random().toString(36).slice(2);
-
   const npc = new Player(
 		name,
     0.7,
@@ -441,7 +440,7 @@ wss.on("connection", (ws, req) => {
 							nickname,
  						}));
 						clients.get(id).nickname = nickname;
-						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, 0, 24, 80, "dynamic", "player", data.color, 100)));
+						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100)));
 						msg("", clients, `${nickname} connected to game`);
 						clients.get(id).joined = true;
 						break;

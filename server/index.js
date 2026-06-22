@@ -294,7 +294,7 @@ function updateNPCs() {
 			obj.direction = Math.random()*2-obj.spidor;
 		};
 
-		if (randomAI == 1) 
+		if (randomAI == 1) {
   		if (obj.aiTimer == 300) {
 				obj.direction = 0;
   		}

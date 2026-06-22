@@ -224,9 +224,9 @@ function createNPC(name, x, y, color = {}) {
     )
   );
   npc.isNPC = true;
-	npc.spidor = 0;
   npc.aiTimer = 0;
   npc.direction = 1;
+
   objects.set(id, npc);
   return id;
 }
@@ -288,17 +288,15 @@ function updateNPCs() {
   	if (!obj.isNPC) return;
   	obj.aiTimer++;
 		if (obj.aiTimer > 600) {
-			obj.randomAI = Math.round(Math.random()*2)
+			obj.randomAI = Math.round(Math.random()*0)+1
 			obj.aiTimer = 0;
+
+			obj.direction = Math.random()*2-obj.spidor;
 		};
 
-		if (randomAI) {
-			if (obj.aiTimer > 600) {
-				let obj.spidor = 0.4;
-    		obj.direction = Math.random()*(obj.spidor*2)-obj.spidor;
-			}
-  		if (obj.aiTimer > 300) {
-				let obj.spidor = 0;
+		if (randomAI == 1) 
+  		if (obj.aiTimer == 300) {
+				obj.direction = 0;
   		}
 			obj.vx += obj.speed * obj.direction;
 

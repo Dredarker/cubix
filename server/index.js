@@ -71,7 +71,7 @@ function update() {
 			if (obj1 == obj2) return;
 			if (obj1.mode == "static" || obj1.mode == "none") return;
 			if (obj2.mode == "none") return;
-			if (obj1.type == "player" || obj2.type == "player") return;
+			if (obj2.type == "player") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;

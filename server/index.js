@@ -258,9 +258,9 @@ function msg(from, to, text) {
 }
 
 function server_sync() {
-	clients.forEach((client, clid) => {
+	clients.forEach((clientData, clid) => {
 		if (!clientData.joined) return;
-  	const client = clientData.ws;
+		const client = clientData.ws;
   	if (client.readyState === WebSocket.OPEN) {
 			let objectsForClient = new Map();
 			objects.forEach((obj, id) => {

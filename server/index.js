@@ -451,7 +451,7 @@ wss.on("connection", (ws, req) => {
 								clients.get(myid).ip = fakeip;
 								nickname += " [✔]";
 							} else {
-								nickname = "приёмный"
+								nickname = "приёмный";
 							}
 						}
 

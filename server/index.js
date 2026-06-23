@@ -23,6 +23,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("200 OK");
   }
+	if (req.url === "/test") {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(req+"\n\n----------\n\n"+res);
+  }
 });
 const wss = new WebSocket.Server({ server });
 
@@ -45,7 +49,7 @@ objects.set("left", new Obj(-25000, -50000, 10000, 50000, "static", "box"));
 objects.set("right", new Obj(25000, -50000, 10000, 50000, "static", "box"));
 objects.set("text", new Text("Here a spawn", "black", new Obj(50, -4800, 0, 0, "none", "text")));
 
-for (let i = 1; i <= 4; i++) {createNPC("Bot "+i, i*24, -4900)};
+for (let i = 1; i <= 1; i++) {createNPC("Bot "+i, i*24, -4900)};
 
 function update() {
 	objects.forEach((obj, name) => {
@@ -245,14 +249,22 @@ function Text(text, textColor, obj) {
 }
 
 function msg(from, to, text) {
-	for (const [id, clientData] of to.entries()) {
-  	const client = clientData.ws;
-  	if (client.readyState === WebSocket.OPEN) {
-  	  client.send(JSON.stringify({
-	      type: "msg",
-	      from,
-	      text,
-			}));
+	if (typeof(to) == "string") {
+		clients.get(to).ws.send(JSON.stringify({
+	    type: "msg",
+	    from,
+	    text,
+		}));
+	} else {
+		for (const [id, clientData] of to.entries()) {
+  		const client = clientData.ws;
+  		if (client.readyState === WebSocket.OPEN) {
+  	  	client.send(JSON.stringify({
+	      	type: "msg",
+	      	from,
+	      	text,
+				}));
+			}
 		}
 	}
 }
@@ -274,9 +286,6 @@ function server_sync() {
 				tmpobj.onGround = obj.onGround;
 				tmpobj.type = obj.type;
 				tmpobj.color = obj.color;
-				tmpobj.TEST = id;
-				tmpobj.TEST2 = clid;
-				tmpobj.TEST3 = id == clid;
 				if (id == clid) {
 					tmpobj.hp = Math.round(obj.health);
 					tmpobj.inv = obj.inventory;
@@ -479,9 +488,11 @@ wss.on("connection", (ws, req) => {
 	      			obj.vy = obj.jumpPower;
 		      		obj.onGround = false;
 		    		}
-						if (data.slot < 0) {myobj.selSlot = 0}
-						else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}
-						else myobj.selSlot = data.slot;
+						try {
+							if (data.slot < 0) {myobj.selSlot = 0}
+							else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}
+							else myobj.selSlot = data.slot;
+						} catch {msg("", client, "Invalid selected slot")}
 					}
 		  	});
       }

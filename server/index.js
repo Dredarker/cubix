@@ -274,7 +274,10 @@ function server_sync() {
 				tmpobj.onGround = obj.onGround;
 				tmpobj.type = obj.type;
 				tmpobj.color = obj.color;
-				if (clid == id) {
+				tmpobj.TEST = id;
+				tmpobj.TEST2 = clid;
+				tmpobj.TEST3 = id == clid;
+				if (id == clid) {
 					tmpobj.hp = Math.round(obj.health);
 					tmpobj.inv = obj.inventory;
 					tmpobj.invsize = obj.inventorysize;

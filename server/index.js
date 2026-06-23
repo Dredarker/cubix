@@ -184,7 +184,7 @@ function findNearestPlayer(npc, maxDist = 10000) {
   return nearest;
 }
 
-function Obj(x, y, width, height, mode, type, color = "black", health = 1/0, inventory = [], inventorysize = 1) {
+function Obj(x, y, width, height, mode, type, color = "black", health = 1/0, inventory = [], inventorysize = 0) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -258,36 +258,38 @@ function msg(from, to, text) {
 }
 
 function server_sync() {
-	let objectsForClient = new Map();
-	objects.forEach((obj, id) => {
-  	let tmpobj = {};
-  	tmpobj.x = Math.round(obj.x);
-  	tmpobj.y = Math.round(obj.y);
-  	tmpobj.width = obj.width;
-  	tmpobj.height = obj.height;
-  	tmpobj.vx = Math.round(obj.vx);
-  	tmpobj.vy = Math.round(obj.vy);
-		tmpobj.onGround = obj.onGround;
-		tmpobj.type = obj.type;
-		tmpobj.color = obj.color;
-		if (id == obj.id) {
-			tmpobj.hp = Math.round(obj.health);
-		}
-		if (obj.nickname) tmpobj.nickname = obj.nickname;
-		if (obj.text) tmpobj.text = obj.text;
-		if (obj.textColor) tmpobj.textColor = obj.textColor;
-  	objectsForClient.set(id, tmpobj);
-	});
-	for (const [id, clientData] of clients.entries()) {
+	clients.forEach((client, clid) => {
 		if (!clientData.joined) return;
   	const client = clientData.ws;
   	if (client.readyState === WebSocket.OPEN) {
+			let objectsForClient = new Map();
+			objects.forEach((obj, id) => {
+  			let tmpobj = {};
+  			tmpobj.x = Math.round(obj.x);
+  			tmpobj.y = Math.round(obj.y);
+  			tmpobj.width = obj.width;
+  			tmpobj.height = obj.height;
+	  		tmpobj.vx = Math.round(obj.vx);
+  			tmpobj.vy = Math.round(obj.vy);
+				tmpobj.onGround = obj.onGround;
+				tmpobj.type = obj.type;
+				tmpobj.color = obj.color;
+				if (clid == id) {
+					tmpobj.hp = Math.round(obj.health);
+					tmpobj.inv = obj.inventory;
+					tmpobj.invsize = obj.inventorysize;
+				}
+				if (obj.nickname) tmpobj.nickname = obj.nickname;
+				if (obj.text) tmpobj.text = obj.text;
+				if (obj.textColor) tmpobj.textColor = obj.textColor;
+  			objectsForClient.set(id, tmpobj);
+			});
 			client.send(JSON.stringify({
 				type: "sync",
 				world: Object.fromEntries(objectsForClient.entries()),
 			}));
 	  }
-	}
+	});
 }
 
 function updateNPCs() {
@@ -474,6 +476,9 @@ wss.on("connection", (ws, req) => {
 	      			obj.vy = obj.jumpPower;
 		      		obj.onGround = false;
 		    		}
+						if (data.slot < 0) {myobj.selSlot = 0}
+						else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}
+						else myobj.selSlot = data.slot;
 					}
 		  	});
       }
@@ -552,11 +557,6 @@ wss.on("connection", (ws, req) => {
 				});
 				if (!cursorInObjs) objects.set(Math.floor(Math.random() * 100000), new Obj(x, y, width, height, "static", data.objtype, color));
 			}
-		};
-		if (data.type === "interact_swslot") {
-			if (data.slot < 0) {myobj.selSlot = 0}
-			else if (data.slot > myobj.inventoryslot) {myobj.selSlot = myobj.inventoryslot}
-			else myobj.selSlot = data.slot;
 		};
   });
 

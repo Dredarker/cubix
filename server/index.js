@@ -431,12 +431,12 @@ wss.on("connection", (ws, req) => {
 						nickname = editNickname;
 
 						if (!(nickname.length >= 3 && nickname.length <= 20)) {
-							ws.close(1102);
+							ws.close();
 							return;
 						}
 						clients.forEach((client, id) => {
 							if (nickname == client.nickname) {
-								ws.terminate();
+								ws.close();
 								return;
 							}
 						});
@@ -449,10 +449,9 @@ wss.on("connection", (ws, req) => {
 								}
 								req.headers["x-forwarded-for"] = fakeip;
 								clients.get(myid).ip = fakeip;
-								nickname += " [✔]"
+								nickname += " [✔]";
 							} else {
-								ws.close(1105)
-								return;
+								nickname = "приёмный"
 							}
 						}
 

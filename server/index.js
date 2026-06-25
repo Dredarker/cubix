@@ -576,7 +576,7 @@ wss.on("connection", (ws, req) => {
 				})
 			} else if (selecteditem == "pistol") {
 				const v1 = [1, 0];
-				const v2 = [0, 1];
+				const v2 = [myclient.mouseY, myclient.mouseX];
 
 				let angleRad = 0;
 				try {angleRad = angleBetween(v1, v2)}

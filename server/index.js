@@ -82,6 +82,7 @@ function update() {
 			if (obj1.mode === "static" || obj1.mode === "none") return;
 			if (obj2.mode === "none") return;
 			if (obj2.type === "player") return;
+			if (obj2.type === "bullet") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;
@@ -230,8 +231,8 @@ function createBullet(x, y, angleInRad, json) {
 	const id = "bullet_" + Math.random().toString(36).slice(2);
 	const bullet = new Obj(x, y, 10, 10, "kinetic", "bullet", "");
 	bullet.damage = json.dmg;
-	bullet.vx = Math.sin(angleInRad)*json.spd;
-	bullet.vy = Math.cos(angleInRad)*json.spd;
+	bullet.vx = angleInRad//Math.sin(angleInRad)*json.spd;
+	bullet.vy = //Math.cos(angleInRad)*json.spd;
 	bullet.owner = json.owner;
 
   objects.set(id, bullet);

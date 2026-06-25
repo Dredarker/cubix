@@ -567,10 +567,11 @@ wss.on("connection", (ws, req) => {
 		};
 
 		if (data.type === "interact_LMB") {
+			console.log(`${myclient.nickname} clicked at ${myclient.mouseX}:${myclient.mouseY} with item ${myobj.inventory[myobj.selSlot]} (${myobj.selSlot})`);
 			let selecteditem = myobj.inventory[myobj.selSlot];
 			if (selecteditem == "pickaxe") {
-				let x = myobj.x + myobj.width/2 + clients.get(myid).mouseX;
-				let y = myobj.y + myobj.height/2 + clients.get(myid).mouseY;
+				let x = myobj.x + myobj.width/2 + myclient.mouseX;
+				let y = myobj.y + myobj.height/2 + myclient.mouseY;
 				objects.forEach((obj, id) => {
 					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
 				})
@@ -582,13 +583,13 @@ wss.on("connection", (ws, req) => {
 				try {angleRad = angleBetween(v1, v2)}
 				catch (e) {};
 
-				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 15});
+				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 5});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;
 
-				let x = objects.get(myid).x + objects.get(myid).width/2 + clients.get(myid).mouseX;
-				let y = objects.get(myid).y + objects.get(myid).height/2 + clients.get(myid).mouseY;
+				let x = myobj.x + myobj.width/2 + myclient.mouseX;
+				let y = myobj.y + myobj.height/2 + myclient.mouseY;
 				x = Math.floor(x/width)*width;
 				y = Math.floor(y/height)*height;
 

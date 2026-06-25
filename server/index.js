@@ -230,8 +230,8 @@ function createBullet(x, y, angleInRad, json) {
 	const id = "bullet_" + Math.random().toString(36).slice(2);
 	const bullet = new Obj(x, y, 10, 10, "kinetic", "bullet", "");
 	bullet.damage = json.dmg;
-	bullet.speed = json.spd;
-	bullet.angle = angleInRad;
+	bullet.vx = Math.sin(angleInRad)*json.spd;
+	bullet.vy = Math.cos(angleInRad)*json.spd;
 
   objects.set(id, bullet);
   return id;

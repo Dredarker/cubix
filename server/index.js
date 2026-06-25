@@ -55,8 +55,8 @@ function update() {
 	objects.forEach((obj, name) => {
 		if (obj.health <= 0) {
 			if (obj.type === "player") {
-				obj.speed = 0;
-				obj.jumpPower = 0;
+				obj.x = 0;
+				obj.y = 0;
 			} else {objects.delete(name)}
 		}
 		if (obj.mode === "dynamic") obj.vy += gravity;
@@ -71,8 +71,12 @@ function update() {
 			obj.y += obj.vy;
 		}
 
-		objects.forEach((obj2, name) => {
+		objects.forEach((obj2, name2) => {
 			let obj1 = obj;
+			if (obj1.type == "bullet" && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
+				obj2.health -= obj1.damage;
+				objects.delete(name1);
+			}
 			if (obj1 == obj2) return;
 			if (obj1.mode == "static" || obj1.mode == "none") return;
 			if (obj2.mode == "none") return;
@@ -149,6 +153,22 @@ function objInRegion(obj, x, y, width, height) {
 	)
 }
 
+function angleBetween(v1, v2) {
+	if (v1.length !== v2.length) {
+		throw new Error("не равная длина массивов");
+	}
+  const dot = v1.reduce((sum, val, i) => sum + val * v2[i], 0);
+
+  const len1 = Math.sqrt(v1.reduce((sum, val) => sum + val * val, 0));
+  const len2 = Math.sqrt(v2.reduce((sum, val) => sum + val * val, 0));
+
+  if (len1 === 0 || len2 === 0) {
+    throw new Error("Нулевой вектор");
+  }
+  const cos = Math.max(-1, Math.min(1, dot / (len1 * len2)));
+  return Math.acos(cos);
+}
+
 function posInObj(x, y, obj) {
 	return (
 		x < obj.x + obj.width &&
@@ -188,7 +208,7 @@ function findNearestPlayer(npc, maxDist = 10000) {
   return nearest;
 }
 
-function Obj(x, y, width, height, mode, type, color = "black", health = 1/0, inventory = [], inventorysize = 0) {
+function Obj(x, y, width, height, mode, type, color = "", health = 999999, inventory = [], inventorysize = 0) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -199,9 +219,22 @@ function Obj(x, y, width, height, mode, type, color = "black", health = 1/0, inv
 	this.type = type;
 	this.color = color;
 	this.health = health;
-	this.inventory = inventory || [];
-	this.inventorysize = inventorysize;
+	if (type === "player" || type === "chest") {
+		this.inventory = inventory || [];
+		this.inventorysize = inventorysize;
+	}
 	this.onGround = false;
+}
+
+function createBullet(x, y, angleInRad, json) {
+	const id = "bullet_" + Math.random().toString(36).slice(2);
+	const bullet = new Obj(x, y, 10, 10, "kinetic", "bullet", "");
+	bullet.damage = json.dmg;
+	bullet.speed = json.spd;
+	bullet.angle = angleInRad;
+
+  objects.set(id, bullet);
+  return id;
 }
 
 function Player(nickname, speed, jumpPower, obj) {
@@ -461,7 +494,7 @@ wss.on("connection", (ws, req) => {
 							nickname,
  						}));
 						clients.get(id).nickname = nickname;
-						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100, ["pickaxe", "pistol"], 4)));
+						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100, ["pickaxe", "block", "pistol"], 5)));
 						msg("", clients, `${nickname} connected to game`);
 						clients.get(id).joined = true;
 						break;
@@ -534,30 +567,25 @@ wss.on("connection", (ws, req) => {
 		};
 
 		if (data.type === "interact_LMB") {
-			if (myobj.inventory[myobj.selSlot] == "pickaxe") {
+			let selecteditem = myobj.inventory[myobj.selSlot];
+			if (selecteditem == "pickaxe") {
 				let x = myobj.x + myobj.width/2 + clients.get(myid).mouseX;
 				let y = myobj.y + myobj.height/2 + clients.get(myid).mouseY;
 				objects.forEach((obj, id) => {
 					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
 				})
-			}
-		}
+			} else if (selecteditem == "pistol") {
+				const v1 = [1, 0];
+				const v2 = [0, 1];
 
-		if (data.type === "interact_RMB") {
-			if (myobj.inventory[myobj.selSlot] == "placer") {
-				if (!["box", "platform"].includes(data.objtype)) return
-				let width = 0;
-				let height = 0;
-				let color = "black";
+				let angleRad = 0;
+				try {angleRad = angleBetween(v1, v2)}
+				catch (e) {};
 
-				if (data.objtype == "platform") {
-					width = 50;
-					height = 25;
-					color = "gray";
-				} else {
-					width = 50;
-					height = 50;
-				}
+				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 15});
+			} else if (selecteditem == "block") {
+				let width = 50;
+				let height = 50;
 
 				let x = objects.get(myid).x + objects.get(myid).width/2 + clients.get(myid).mouseX;
 				let y = objects.get(myid).y + objects.get(myid).height/2 + clients.get(myid).mouseY;
@@ -568,9 +596,9 @@ wss.on("connection", (ws, req) => {
 				objects.forEach((obj, id) => {
 					if (posInObj(x+width/2, y+height/2, obj)) {cursorInObjs = true};
 				});
-				if (!cursorInObjs) objects.set(Math.floor(Math.random() * 100000), new Obj(x, y, width, height, "static", data.objtype, color));
+				if (!cursorInObjs) objects.set(Math.floor(Math.random() * 100000), new Obj(x, y, width, height, "static", "block", "gray"));
 			}
-		};
+		}
   });
 
 	ws.on("close", () => {

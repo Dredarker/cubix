@@ -73,6 +73,7 @@ function update() {
 
 		objects.forEach((obj2, name2) => {
 			let obj1 = obj;
+			let name1 = name;
 			if (obj1.type == "bullet" && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);

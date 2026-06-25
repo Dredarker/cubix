@@ -231,8 +231,8 @@ function createBullet(x, y, angleInRad, json) {
 	const id = "bullet_" + Math.random().toString(36).slice(2);
 	const bullet = new Obj(x, y, 10, 10, "kinetic", "bullet", "");
 	bullet.damage = json.dmg;
-	bullet.vx = angleInRad//Math.sin(angleInRad)*json.spd;
-	bullet.vy = //Math.cos(angleInRad)*json.spd;
+	bullet.vx = Math.sin(angleInRad)*json.spd;
+	bullet.vy = Math.cos(angleInRad)*json.spd;
 	bullet.owner = json.owner;
 
   objects.set(id, bullet);
@@ -585,7 +585,7 @@ wss.on("connection", (ws, req) => {
 				try {angleRad = angleBetween(v1, v2)}
 				catch (e) {};
 
-				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 5, owner: myid});
+				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 1, owner: myid});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;

@@ -62,7 +62,6 @@ function update() {
 		if (obj.mode === "dynamic") obj.vy += gravity;
 		obj.vx = Math.round(obj.vx*(obj.onGround ? 0.8 : 1)*1000)/1000;
 		obj.vy = Math.round(obj.vy*1000)/1000;
-
 		if (
 			obj.mode === "dynamic" ||
 			obj.mode === "kinetic"
@@ -70,7 +69,6 @@ function update() {
 			obj.x += obj.vx;
 			obj.y += obj.vy;
 		}
-
 		objects.forEach((obj2, name2) => {
 			let obj1 = obj;
 			let name1 = name;

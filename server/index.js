@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
   }
 	if (req.url === "/test") {
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(req+"\n\n----------\n\n"+res);
+    res.end(JSON.stringify(req)+"\n\n----------\n\n"+JSON.stringify(res));
   }
 });
 const wss = new WebSocket.Server({ server });
@@ -74,7 +74,7 @@ function update() {
 		objects.forEach((obj2, name2) => {
 			let obj1 = obj;
 			let name1 = name;
-			if (obj1.type === "bullet" && name2 !== obj2.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
+			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);
 			}
@@ -91,13 +91,12 @@ function update() {
 			objRealX2 = obj2.x+obj2.width/2;
 			objRealY2 = obj2.y+obj2.height/2;
 
-			objRelativeX1 = (objRealX1 - objRealX2) / obj1.height;
-			objRelativeY1 = (objRealY1 - objRealY2) / obj1.width;
+			objRelativeX1 = (objRealX1 - objRealX2) * obj1.height;
+			objRelativeY1 = (objRealY1 - objRealY2) * obj1.width;
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 					if (objRelativeY1 < 0) {
-						if (obj1.vy > 12) obj1.health -= obj1.vy;
 						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
 						obj1.vy /= 3;
 						obj1.y = obj2.y - obj1.height;

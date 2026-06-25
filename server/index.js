@@ -74,14 +74,14 @@ function update() {
 		objects.forEach((obj2, name2) => {
 			let obj1 = obj;
 			let name1 = name;
-			if (obj1.type == "bullet" && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
+			if (obj1.type === "bullet" && name2 !== obj2.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);
 			}
-			if (obj1 == obj2) return;
-			if (obj1.mode == "static" || obj1.mode == "none") return;
-			if (obj2.mode == "none") return;
-			if (obj2.type == "player") return;
+			if (obj1 === obj2) return;
+			if (obj1.mode === "static" || obj1.mode === "none") return;
+			if (obj2.mode === "none") return;
+			if (obj2.type === "player") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;
@@ -91,8 +91,8 @@ function update() {
 			objRealX2 = obj2.x+obj2.width/2;
 			objRealY2 = obj2.y+obj2.height/2;
 
-			objRelativeX1 = (objRealX1 - objRealX2) * (obj1.width / 100);
-			objRelativeY1 = (objRealY1 - objRealY2) * (obj1.height / 100);
+			objRelativeX1 = (objRealX1 - objRealX2) / obj1.height;
+			objRelativeY1 = (objRealY1 - objRealY2) / obj1.width;
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
@@ -233,6 +233,7 @@ function createBullet(x, y, angleInRad, json) {
 	bullet.damage = json.dmg;
 	bullet.vx = Math.sin(angleInRad)*json.spd;
 	bullet.vy = Math.cos(angleInRad)*json.spd;
+	bullet.owner = json.owner;
 
   objects.set(id, bullet);
   return id;
@@ -568,7 +569,7 @@ wss.on("connection", (ws, req) => {
 		};
 
 		if (data.type === "interact_LMB") {
-			console.log(`${myclient.nickname} clicked at ${myclient.mouseX}:${myclient.mouseY} with item ${myobj.inventory[myobj.selSlot]} (${myobj.selSlot})`);
+			//console.log(`${myclient.nickname} clicked at ${myclient.mouseX}:${myclient.mouseY} with item ${myobj.inventory[myobj.selSlot]} (${myobj.selSlot})`);
 			let selecteditem = myobj.inventory[myobj.selSlot];
 			if (selecteditem == "pickaxe") {
 				let x = myobj.x + myobj.width/2 + myclient.mouseX;
@@ -584,7 +585,7 @@ wss.on("connection", (ws, req) => {
 				try {angleRad = angleBetween(v1, v2)}
 				catch (e) {};
 
-				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 5});
+				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 5, owner: myid});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;

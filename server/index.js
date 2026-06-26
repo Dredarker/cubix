@@ -70,12 +70,13 @@ function update() {
 			obj.x += obj.vx;
 			obj.y += obj.vy;
 		}
+		let obj1 = obj;
+		let name1 = name;
 		objects.forEach((obj2, name2) => {
-			let obj1 = obj;
-			let name1 = name;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
+				msg("",clients,`${name1} (${obj1.type}) touched ${name2} (${obj2.type})`);
 				obj2.health -= obj1.damage;
-				//objects.delete(name1);
+				objects.delete(name1);
 			}
 			if (obj1 === obj2) return;
 			if (obj1.mode === "static" || obj1.mode === "none") return;

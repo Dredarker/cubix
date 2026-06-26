@@ -59,9 +59,10 @@ function update() {
 				obj.y = 0;
 			} else {objects.delete(name)}
 		}
-		if (obj.mode === "dynamic") obj.vy += gravity;
-		obj.vx = Math.round(obj.vx*(obj.onGround ? 0.8 : 1)*1000)/1000;
-		obj.vy = Math.round(obj.vy*1000)/1000;
+		if (obj.mode === "dynamic") {
+			obj.vy += gravity;
+			obj.vx = obj.vx*(obj.onGround ? 0.8 : 1);
+		}
 		if (
 			obj.mode === "dynamic" ||
 			obj.mode === "kinetic"
@@ -73,7 +74,7 @@ function update() {
 			let obj1 = obj;
 			let name1 = name;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
-				obj2.health -= obj1.damage;
+				//obj2.health -= obj1.damage;
 				objects.delete(name1);
 			}
 			if (obj1 === obj2) return;

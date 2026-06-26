@@ -582,7 +582,7 @@ wss.on("connection", (ws, req) => {
 					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
 				})
 			} else if (selecteditem == "pistol") {
-				createBullet(myobj.x, myobj.y, myclient.mouseX/80, myclient.mouseY/80, {dmg: 12, spd: 14, owner: myid, livetime: 50});
+				createBullet(myobj.x, myobj.y, myclient.mouseX/50, myclient.mouseY/50, {dmg: 12, spd: 14, owner: myid, livetime: 50});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;

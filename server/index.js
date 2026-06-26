@@ -59,6 +59,10 @@ function update() {
 				obj.y = 0;
 			} else {objects.delete(name)}
 		}
+		if (obj.livetime) {
+			obj.livetime--;
+			if (obj.livetime == 0) objects.delete(name);
+		}
 		if (obj.mode === "dynamic") {
 			obj.vy += gravity;
 			obj.vx = obj.vx*(obj.onGround ? 0.8 : 1);
@@ -226,12 +230,12 @@ function Obj(x, y, width, height, mode, type, color = "", health = 999999, inven
 	this.onGround = false;
 }
 
-function createBullet(x, y, angleInRad, json) {
+function createBullet(x, y, vx, vy, json) {
 	const id = "bullet_" + Math.random().toString(36).slice(2);
 	const bullet = new Obj(x, y, 10, 10, "kinetic", "bullet", "");
 	bullet.damage = json.dmg;
-	bullet.vx = Math.sin(angleInRad)*json.spd;
-	bullet.vy = Math.cos(angleInRad)*json.spd;
+	bullet.vx = vx;
+	bullet.vy = vy;
 	bullet.owner = json.owner;
 	bullet.livetime = json.livetime;
 
@@ -578,14 +582,7 @@ wss.on("connection", (ws, req) => {
 					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
 				})
 			} else if (selecteditem == "pistol") {
-				const v1 = [1, 0];
-				const v2 = [myclient.mouseY, myclient.mouseX];
-
-				let angleRad = 0;
-				try {angleRad = angleBetween(v1, v2)}
-				catch (e) {};
-
-				createBullet(myobj.x, myobj.y, angleRad, {dmg: 12, spd: 8, owner: myid});
+				createBullet(myobj.x, myobj.y, myclient.mouseX/80, myclient.mouseY/80, {dmg: 12, spd: 14, owner: myid, livetime: 50});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;

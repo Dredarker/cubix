@@ -74,8 +74,8 @@ function update() {
 			let obj1 = obj;
 			let name1 = name;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
-				//obj2.health -= obj1.damage;
-				objects.delete(name1);
+				obj2.health -= obj1.damage;
+				//objects.delete(name1);
 			}
 			if (obj1 === obj2) return;
 			if (obj1.mode === "static" || obj1.mode === "none") return;

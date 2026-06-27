@@ -479,7 +479,7 @@ wss.on("connection", (ws, req) => {
 			if (clientData.ws === ws) myid = id;
 		});
 		let myobj = objects.get(myid);
-		let myclient = myclient;
+		let myclient = clients.get(myid);
 
 		let data;
     try {

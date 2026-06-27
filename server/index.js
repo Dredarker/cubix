@@ -43,11 +43,11 @@ let gravity = 0.4;
 let newCollisionModel = true;
 
 const objects = new Map();
-objects.set("top", new Obj(-25000, -50000, 50000, 10000, "static", "box"));
-objects.set("bottom", new Obj(-25000, 0, 50000, 10000, "static", "box"));
-objects.set("left", new Obj(-25000, -50000, 10000, 50000, "static", "box"));
-objects.set("right", new Obj(25000, -50000, 10000, 50000, "static", "box"));
-objects.set("text", new Text("Here a spawn", "black", new Obj(50, -4800, 0, 0, "none", "text")));
+objects.set("top", new Obj(-25000, -75000, 50000, 50000, "static", "box"));
+objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "box"));
+objects.set("left", new Obj(-25000, -75000, 50000, 50000, "static", "box"));
+objects.set("right", new Obj(25000, -75000, 50000, 50000, "static", "box"));
+objects.set("text", new Text("Here a spawn", "black", new Obj(12, -60, 0, 0, "none", "text")));
 
 for (let i = 1; i <= 1; i++) {createNPC("Bot "+i, i*24, -4900)};
 

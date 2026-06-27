@@ -33,13 +33,15 @@ const clients = new Map();
 // game
 console.log("Initializating the game");
 
-const badwords = ["[ieе][б6][аеу][нnтt]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
+const badwords = [];//["[ieе][б6][аеу][нnтt]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
 
 let gravity = 0.4;
 let newCollisionModel = true;
 
 const objects = new Map();
-objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "box", "black", true));
+objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
+objects.set("map1", new Obj(-100, -100, 200, 200, "static", "block", "", true));
+objects.set("map2", new Obj(-100, 100, 200, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -90, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
@@ -533,12 +535,13 @@ wss.on("connection", (ws, req) => {
 						myclient.mouseX = data.mouseX;
 						myclient.mouseY = data.mouseY;
 						let tmpspeed = obj.speed * (obj.onGround ? 1 : 0.1);
+						let flyspeed = obj.speed * 10;
 
-						if (myobj.mode === "kinetic") {
-							if (keys["KeyA"]) obj.x -= tmpspeed;
-	      			if (keys["KeyD"]) obj.x += tmpspeed;
-							if (keys["KeyW"]) obj.y -= tmpspeed;
-	      			if (keys["KeyS"]) obj.y += tmpspeed;
+						if (myobj.mode === "static") {
+							if (keys["KeyA"]) obj.x -= flyspeed;
+	      			if (keys["KeyD"]) obj.x += flyspeed;
+							if (keys["KeyW"]) obj.y -= flyspeed;
+	      			if (keys["KeyS"]) obj.y += flyspeed;
 						} else {
 							if (keys["KeyA"]) obj.vx -= tmpspeed;
 	      			else if (keys["KeyD"]) obj.vx += tmpspeed;
@@ -603,7 +606,7 @@ wss.on("connection", (ws, req) => {
 					if (posInObj(x, y, obj) && typeof(id) == "number" && obj.type != "player") objects.delete(id);
 				})
 			} else if (selecteditem == "pistol") {
-				createBullet(myobj.x, myobj.y, myclient.mouseX/50, myclient.mouseY/50, {dmg: 12, spd: 14, owner: myid, livetime: 50});
+				createBullet(myobj.x+myobj.width/2, myobj.y+myobj.height/2, myclient.mouseX/50, myclient.mouseY/50, {dmg: 12, spd: 14, owner: myid, livetime: 100});
 			} else if (selecteditem == "block") {
 				let width = 50;
 				let height = 50;

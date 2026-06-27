@@ -40,8 +40,10 @@ let newCollisionModel = true;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
-objects.set("map1", new Obj(-100, -100, 200, 200, "static", "block", "", true));
-objects.set("map2", new Obj(-100, 100, 200, 200, "static", "block", "", true));
+objects.set("map1", new Obj(100, -300, 200, 200, "static", "block", "", true));
+objects.set("map2", new Obj(100, -100, 200, 200, "static", "block", "", true));
+objects.set("map3", new Obj(100, 100, 200, 200, "static", "block", "", true));
+objects.set("map2", new Obj(100, 300, 200, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -90, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
@@ -74,6 +76,7 @@ function update() {
 		let name1 = name;
 		objects.forEach((obj2, name2) => {
 			if (obj1 === obj2) return;
+			if (obj2.type === "bullet") return;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);
@@ -81,7 +84,6 @@ function update() {
 			if (obj1.mode === "static" || obj1.mode === "none") return;
 			if (obj2.mode === "none") return;
 			if (obj2.type === "player") return;
-			if (obj2.type === "bullet") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;

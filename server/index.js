@@ -78,13 +78,13 @@ function update() {
 		let name1 = name;
 		objects.forEach((obj2, name2) => {
 			if (obj1 === obj2) return;
+			if (obj2.mode === "none") return;
 			if (obj2.type === "bullet") return;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);
 			}
 			if (obj1.mode === "static" || obj1.mode === "none") return;
-			if (obj2.mode === "none") return;
 			if (obj2.type === "player") return;
 
 			obj.onGround = false;
@@ -100,7 +100,7 @@ function update() {
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
 					if (obj2.type === "ladder") {
-						obj1.vy -= gravity;
+						obj1.vy -= gravity/2;
 					} else {
 						if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 							if (objRelativeY1 < 0) {
@@ -182,6 +182,12 @@ function posInObj(x, y, obj) {
 	)
 }
 
+function distanceBetween(x1, y1, x2, y2) {
+	const dx = x1 - x2;
+	const dy = y1 - y2;
+	return dx*dx+dy*dy;
+}
+
 function checkUnderCollision(obj) {
 	boolean = false;
 	objects.forEach((obj2, name) => {
@@ -200,9 +206,7 @@ function findNearestPlayer(npc) {
     if (obj.type !== "player") return;
     if (obj.isNPC) return;
 
-    const dx = obj.x - npc.x;
-    const dy = obj.y - npc.y;
-    const dist = dx * dx + dy * dy;
+    const dist = distanceBetween(obj.x, obj.y, npc.x, npc.y);
 
     if (dist < bestDist) {
       bestDist = dist;
@@ -413,7 +417,11 @@ let iferrorframestotryagain = 0;
 let fps = 60;
 
 function gameLoop() {
-	if (optimizeSyncron) framestosync = Math.floor((objects.size+3)/5);
+	if (optimizeSyncron) {
+		let objectssize = 0;
+		objects.forEach((obj, id) => {if (!obj.ismap) objectssize++});
+		framestosync = Math.floor((objectssize+3)/5);
+	}
 	frames++;
 
 	if (iferrorframestotryagain <= 0) {
@@ -471,7 +479,7 @@ wss.on("connection", (ws, req) => {
 			if (clientData.ws === ws) myid = id;
 		});
 		let myobj = objects.get(myid);
-		let myclient = clients.get(myid);
+		let myclient = myclient;
 
 		let data;
     try {
@@ -480,7 +488,7 @@ wss.on("connection", (ws, req) => {
       return;
     }
 
-		if (!clients.get(myid).joined) {
+		if (!myclient.joined) {
 			if (data.type === "join") {
 				for (const [id, clientData] of clients.entries()) {
 					if (clientData.ws === ws) {
@@ -510,7 +518,7 @@ wss.on("connection", (ws, req) => {
 									fakeip += (i == 0 ? "": ".")+Math.ceil(Math.random()*255);
 								}
 								req.headers["x-forwarded-for"] = fakeip;
-								clients.get(myid).ip = fakeip;
+								myclient.ip = fakeip;
 								nickname += " [✔]";
 							} else {
 								nickname = "приёмный";
@@ -553,8 +561,8 @@ wss.on("connection", (ws, req) => {
 						} else {
 							if (keys["KeyA"]) obj.vx -= tmpspeed;
 	      			if (keys["KeyD"]) obj.vx += tmpspeed;
-	      			if (keys["KeyW"]) obj.vy -= 0.2;
-	      			if (keys["KeyS"]) obj.vy += 0.2;
+	      			if (keys["KeyW"]) obj.vy -= tmpspeed/8;
+	      			if (keys["KeyS"]) obj.vy += tmpspeed/8;
 	      			if (keys["Space"] && obj.onGround) {
 	      				obj.vy = obj.jumpPower;
 		      			obj.onGround = false;
@@ -574,7 +582,7 @@ wss.on("connection", (ws, req) => {
 			let str = data.text;
 			if (str.length <= 250) {
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
-				msg(clients.get(myid).nickname, clients, str);
+				msg(myclient.nickname, clients, str);
 			} else {
 				ws.close(1102);
 			}
@@ -588,13 +596,16 @@ wss.on("connection", (ws, req) => {
         }
         ws.send(JSON.stringify({
           type: "getclients",
-          text: clientsIds
+          text: clientsNicknames,
         }));
       }
     }
 
 		if (data.type === "console") {
-			if (data.password !== process.env.console_password) ws.terminate();
+			if (data.password !== process.env.console_password) {
+				ws.terminate();
+				return;
+			}
 			let result;
 			try {
 				result = eval(data.msg);
@@ -608,8 +619,10 @@ wss.on("connection", (ws, req) => {
 
 		if (data.type === "interact_LMB") {
 			//console.log(`${myclient.nickname} clicked at ${myclient.mouseX}:${myclient.mouseY} with item ${myobj.inventory[myobj.selSlot]} (${myobj.selSlot})`);
+			let range = 300;
+			let mousedist = distanceBetween(0, 0, myclient.mouseX, myclient.mouseY);
 			let selecteditem = myobj.inventory[myobj.selSlot];
-			if (selecteditem == "pickaxe") {
+			if (selecteditem == "pickaxe" && mousedist < range) {
 				let x = myobj.x + myobj.width/2 + myclient.mouseX;
 				let y = myobj.y + myobj.height/2 + myclient.mouseY;
 				objects.forEach((obj, id) => {
@@ -617,7 +630,7 @@ wss.on("connection", (ws, req) => {
 				})
 			} else if (selecteditem == "pistol") {
 				createBullet(myobj.x+myobj.width/2, myobj.y+myobj.height/2, myclient.mouseX/50, myclient.mouseY/50, {dmg: 12, spd: 14, owner: myid, livetime: 100});
-			} else if (selecteditem == "block") {
+			} else if (selecteditem == "block" && mousedist < range) {
 				let width = 50;
 				let height = 50;
 

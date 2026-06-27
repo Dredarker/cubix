@@ -40,10 +40,13 @@ let newCollisionModel = true;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
-objects.set("map1", new Obj(-300, -100, 200, 200, "static", "block", "", true));
-objects.set("map2", new Obj(-100, -100, 200, 200, "static", "block", "", true));
-objects.set("map3", new Obj(100, -100, 200, 200, "static", "block", "", true));
-objects.set("map4", new Obj(300, -100, 200, 200, "static", "block", "", true));
+objects.set("map-2.-2", new Obj(-400, -400, 200, 200, "static", "block", "", true));
+objects.set("map-1.-2", new Obj(-200, -400, 200, 200, "static", "block", "", true));
+objects.set("map0.-2", new Obj(0, -400, 200, 200, "static", "block", "", true));
+objects.set("map1.-4", new Obj(200, -800, 200, 200, "static", "block", "", true));
+objects.set("map1.-4", new Obj(200, -800, 200, 200, "static", "block", "", true));
+objects.set("map1.-4ladder", new Obj(200, -800, 50, 200, "static", "ladder", "", true));
+objects.set("map2.-2", new Obj(400, -400, 200, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -90, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
@@ -97,23 +100,27 @@ function update() {
 			objRelativeY1 = (objRealY1 - objRealY2) * obj2.width;
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
-				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
-					if (objRelativeY1 < 0) {
-						obj1.vy = 0;
-						obj1.y = obj2.y - obj1.height;
-					} else if (obj2.type != "platform") {
-						obj1.vy = 0;
-						obj1.y = obj2.y + obj2.height;
-					}
-				} else if (obj2.type != "platform") {
-					if (objRelativeX1 < 0) {
-						obj1.vx = 0;
-						obj1.x = obj2.x - obj1.width;
+					if (obj2.type === "ladder") {
+						obj1.vy /= 4;
 					} else {
-						obj1.vx = 0;
-						obj1.x = obj2.x + obj2.width;
+						if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
+							if (objRelativeY1 < 0) {
+								obj1.vy = 0;
+								obj1.y = obj2.y - obj1.height;
+							} else if (obj2.type != "platform") {
+								obj1.vy = 0;
+								obj1.y = obj2.y + obj2.height;
+							}
+						} else if (obj2.type != "platform") {
+							if (objRelativeX1 < 0) {
+								obj1.vx = 0;
+								obj1.x = obj2.x - obj1.width;
+							} else {
+								obj1.vx = 0;
+								obj1.x = obj2.x + obj2.width;
+							}
+						}
 					}
-				}
 				} else { // old collision
 				if (objInRegion(obj1, obj2.x+5, obj2.y, obj2.width-10, obj2.height/2)) {
 					if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
@@ -546,7 +553,9 @@ wss.on("connection", (ws, req) => {
 	      			if (keys["KeyS"]) obj.y += flyspeed;
 						} else {
 							if (keys["KeyA"]) obj.vx -= tmpspeed;
-	      			else if (keys["KeyD"]) obj.vx += tmpspeed;
+	      			if (keys["KeyD"]) obj.vx += tmpspeed;
+	      			if (keys["KeyW"]) obj.vy -= 0.2;
+	      			if (keys["KeyS"]) obj.vy += 0.2;
 	      			if (keys["Space"] && obj.onGround) {
 	      				obj.vy = obj.jumpPower;
 		      			obj.onGround = false;
@@ -593,7 +602,7 @@ wss.on("connection", (ws, req) => {
 				try {result = JSON.stringify(result)} catch {result = String(result)};
 			} catch (err) {result = err};
 			ws.send(JSON.stringify({
-				type: "msg",
+				type: "console",
 				text: result,
 			}))
 		};

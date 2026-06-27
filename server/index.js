@@ -43,13 +43,10 @@ let gravity = 0.4;
 let newCollisionModel = true;
 
 const objects = new Map();
-objects.set("top", new Obj(-25000, -75000, 50000, 50000, "static", "box"));
-objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "box"));
-objects.set("left", new Obj(-25000, -75000, 50000, 50000, "static", "box"));
-objects.set("right", new Obj(25000, -75000, 50000, 50000, "static", "box"));
-objects.set("text", new Text("Here a spawn", "black", new Obj(12, -60, 0, 0, "none", "text")));
+objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "box", "black", true));
+objects.set("text", new Text("Here a spawn", "black", new Obj(12, -20, 0, 0, "none", "text", "", true)));
 
-for (let i = 1; i <= 1; i++) {createNPC("Bot "+i, i*24, -4900)};
+for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
 
 function update() {
 	objects.forEach((obj, name) => {
@@ -103,21 +100,17 @@ function update() {
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 					if (objRelativeY1 < 0) {
 						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
-						obj1.vy /= 3;
 						obj1.y = obj2.y - obj1.height;
 					} else if (obj2.type != "platform") {
 						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
-						obj1.vy /= 3;
 						obj1.y = obj2.y + obj2.height;
 					}
 				} else if (obj2.type != "platform") {
 					if (objRelativeX1 < 0) {
 						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
-						obj1.vx /= 3;
 						obj1.x = obj2.x - obj1.width;
 					} else {
 						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
-						obj1.vx /= 3;
 						obj1.x = obj2.x + obj2.width;
 					}
 				}
@@ -193,9 +186,9 @@ function checkUnderCollision(obj) {
 	return boolean;
 }
 
-function findNearestPlayer(npc, maxDist = 10000) {
+function findNearestPlayer(npc) {
 	let nearest = null;
-  let bestDist = maxDist;
+  let bestDist = 1/0;
 
   objects.forEach(obj => {
     if (obj.type !== "player") return;
@@ -213,7 +206,7 @@ function findNearestPlayer(npc, maxDist = 10000) {
   return nearest;
 }
 
-function Obj(x, y, width, height, mode, type, color = "", health = 999999, inventory = [], inventorysize = 0) {
+function Obj(x, y, width, height, mode, type, color = "", ismap = false, health = 999999, inventory = [], inventorysize = 0) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -224,6 +217,7 @@ function Obj(x, y, width, height, mode, type, color = "", health = 999999, inven
 	this.type = type;
 	this.color = color;
 	this.health = health;
+	this.ismap = ismap;
 	if (type === "player" || type === "chest") {
 		this.inventory = inventory || [];
 		this.inventorysize = inventorysize;
@@ -268,6 +262,7 @@ function createNPC(name, x, y, color = {}) {
       "dynamic",
       "player",
       color,
+			false,
       100
     )
   );
@@ -316,6 +311,7 @@ function server_sync() {
   	if (client.readyState === WebSocket.OPEN) {
 			let objectsForClient = new Map();
 			objects.forEach((obj, id) => {
+				if (obj.ismap) continue;
   			let tmpobj = {};
   			tmpobj.x = Math.round(obj.x);
   			tmpobj.y = Math.round(obj.y);
@@ -340,6 +336,30 @@ function server_sync() {
 				type: "sync",
 				world: Object.fromEntries(objectsForClient.entries()),
 			}));
+	  }
+	});
+}
+
+function sendMap(clientWS, objects) {
+  if (clientWS.readyState === WebSocket.OPEN) {
+		let objectsForClient = new Map();
+		objects.forEach((obj, id) => {
+			if (!obj.ismap) continue;
+  		let tmpobj = {};
+  		tmpobj.x = Math.round(obj.x);
+  		tmpobj.y = Math.round(obj.y);
+  		tmpobj.width = obj.width;
+  		tmpobj.height = obj.height;
+			tmpobj.type = obj.type;
+			tmpobj.color = obj.color;
+			if (obj.text) tmpobj.text = obj.text;
+			if (obj.textColor) tmpobj.textColor = obj.textColor;
+  		objectsForClient.set(id, tmpobj);
+		});
+		clientWS.send(JSON.stringify({
+			type: "map",
+			world: Object.fromEntries(objectsForClient.entries()),
+		}));
 	  }
 	});
 }
@@ -500,10 +520,11 @@ wss.on("connection", (ws, req) => {
     					clientId,
 							nickname,
  						}));
-						clients.get(id).nickname = nickname;
-						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, 100, ["pickaxe", "block", "pistol"], 5)));
+						myclient.nickname = nickname;
+						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, false, 100, ["pickaxe", "block", "pistol"], 5)));
 						msg("", clients, `${nickname} connected to game`);
-						clients.get(id).joined = true;
+						myclient.joined = true;
+						sendMap(myclient.ws, objects);
 						break;
 					}
       	}

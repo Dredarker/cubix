@@ -57,6 +57,7 @@ function update() {
 			if (obj.type === "player") {
 				obj.x = 0;
 				obj.y = 0;
+				obj.health = 100;
 			} else {objects.delete(name)}
 		}
 		if (obj.livetime) {
@@ -78,14 +79,14 @@ function update() {
 		let name1 = name;
 		objects.forEach((obj2, name2) => {
 			if (obj1 === obj2) return;
-			if (obj1.mode === "static" || obj1.mode === "none") return;
-			if (obj2.mode === "none") return;
-			if (obj2.type === "player") return;
-			if (obj2.type === "bullet") return;
 			if (obj1.type === "bullet" && name2 !== obj1.owner && objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				obj2.health -= obj1.damage;
 				objects.delete(name1);
 			}
+			if (obj1.mode === "static" || obj1.mode === "none") return;
+			if (obj2.mode === "none") return;
+			if (obj2.type === "player") return;
+			if (obj2.type === "bullet") return;
 
 			obj.onGround = false;
 			if (checkUnderCollision(obj) && obj2.mode != "none") obj.onGround = true;

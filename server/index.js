@@ -101,7 +101,7 @@ function update() {
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
 					if (obj2.type === "ladder") {
-						obj1.vy /= 4;
+						obj1.vy -= gravity;
 					} else {
 						if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 							if (objRelativeY1 < 0) {

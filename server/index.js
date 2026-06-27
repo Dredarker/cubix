@@ -311,7 +311,7 @@ function server_sync() {
   	if (client.readyState === WebSocket.OPEN) {
 			let objectsForClient = new Map();
 			objects.forEach((obj, id) => {
-				if (obj.ismap) continue;
+				if (obj.ismap) return;
   			let tmpobj = {};
   			tmpobj.x = Math.round(obj.x);
   			tmpobj.y = Math.round(obj.y);
@@ -344,7 +344,7 @@ function sendMap(clientWS, objects) {
   if (clientWS.readyState === WebSocket.OPEN) {
 		let objectsForClient = new Map();
 		objects.forEach((obj, id) => {
-			if (!obj.ismap) continue;
+			if (!obj.ismap) return;
   		let tmpobj = {};
   		tmpobj.x = Math.round(obj.x);
   		tmpobj.y = Math.round(obj.y);

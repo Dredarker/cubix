@@ -23,10 +23,6 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("200 OK");
   }
-	if (req.url === "/test") {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(JSON.stringify(req)+"\n\n----------\n\n"+JSON.stringify(res));
-  }
 });
 const wss = new WebSocket.Server({ server });
 
@@ -99,18 +95,18 @@ function update() {
 				if (newCollisionModel) { // new collision
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {
 					if (objRelativeY1 < 0) {
-						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
+						obj1.vy = 0;
 						obj1.y = obj2.y - obj1.height;
 					} else if (obj2.type != "platform") {
-						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
+						obj1.vy = 0;
 						obj1.y = obj2.y + obj2.height;
 					}
 				} else if (obj2.type != "platform") {
 					if (objRelativeX1 < 0) {
-						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
+						obj1.vx = 0;
 						obj1.x = obj2.x - obj1.width;
 					} else {
-						if (obj1.mode == "dynamic") {obj2.vx = obj1.vx; obj2.vy = obj1.vy}
+						obj1.vx = 0;
 						obj1.x = obj2.x + obj2.width;
 					}
 				}

@@ -44,7 +44,7 @@ let newCollisionModel = true;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "box", "black", true));
-objects.set("text", new Text("Here a spawn", "black", new Obj(12, -20, 0, 0, "none", "text", "", true)));
+objects.set("text", new Text("Here a spawn", "black", new Obj(12, -90, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
 
@@ -93,8 +93,8 @@ function update() {
 			objRealX2 = obj2.x+obj2.width/2;
 			objRealY2 = obj2.y+obj2.height/2;
 
-			objRelativeX1 = (objRealX1 - objRealX2) * obj1.height;
-			objRelativeY1 = (objRealY1 - objRealY2) * obj1.width;
+			objRelativeX1 = (objRealX1 - objRealX2) * obj2.height;
+			objRelativeY1 = (objRealY1 - objRealY2) * obj2.width;
 			if (objInRegion(obj1, obj2.x, obj2.y, obj2.width, obj2.height)) {
 				if (newCollisionModel) { // new collision
 				if (Math.abs(objRelativeX1) < Math.abs(objRelativeY1)) {

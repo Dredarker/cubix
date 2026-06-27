@@ -266,7 +266,7 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 3];
+var gameVersion = [0, 3, 4];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
@@ -330,8 +330,9 @@ images.new("player_hair", "hair.png");
 images.new("player_hand", "hand.png");
 images.new("player_head", "head.png");
 images.new("player_leg", "leg.png");
-images.new("pistol", "pistol.png")
-images.new("pickaxe", "pickaxe.png")
+images.new("pistol", "pistol.png");
+images.new("pickaxe", "pickaxe.png");
+images.new("ladder", "ladder.png");
 sounds.source = `https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/snd/`;
 
 const canvas = document.getElementById("gameCanvas");
@@ -352,6 +353,7 @@ let mouseY = 0;
 document.onmousemove = () => {mouseX = event.clientX; mouseY = event.clientY}
 
 let objects = new Map();
+let map = new Map();
 let oldObjects = new Map();
 
 document.addEventListener("keydown", (e) => {
@@ -380,15 +382,18 @@ document.addEventListener("keydown", (event) => {
 				console_mode.mode = args[1] ?? "";
 				if (console_mode.mode == "") {
 					messageToChat("Avaliable modes:", "#aaaaaa");
-					messageToChat("• build (width) (height) (objmode) (objtype)", "#aaaaaa");
+					messageToChat("• build (width) (height) (ismap)", "#aaaaaa");
+					messageToChat("• boom", "#aaaaaa");
 					messageToChat("-------------------------------------", "#aaaaaa");
 					messageToChat("Also emtped mode", "#aaaaaa");
 				} else {
 					if (args[1] == "build") {
 						console_mode.width = args[2];
 						console_mode.height = args[3];
-						console_mode.objmode = args[4];
-						console_mode.objtype = args[5];
+						console_mode.ismap = args[4];
+					}
+					if (args[1] == "boom") {
+						console_mode.alsodmgme = args[2];
 					}
 					messageToChat(`Set console mode to ${console_mode.mode}`, "#aaaaaa")
 				}
@@ -473,17 +478,22 @@ ws.onmessage = (event) => {
 		if (json.type == "init") {
 			myData.id = json.clientId;
 			myData.nickname = json.nickname;
+		} else if (json.type == "map") {
+			new Map(Object.entries(json.world)).forEach((obj, id) => {
+				obj.ismap = true;
+				objects.set(id, obj);
+			});
 		} else if (json.type == "sync") {
 			maxfbss = fbss;
 			fbss = 0;
-			if (objects.size>0) {
-				oldObjects = objects;
-				objects = new Map(Object.entries(json.world));
-			} else {
-				oldObjects = new Map(Object.entries(json.world));
-				objects = oldObjects;
-			}
+
+			let newobjects = new Map(Object.entries(json.world));
+			oldObjects = objects;
 			objects.forEach((obj, id) => {
+				if (!newobjects.has(id) && !obj.ismap) objects.delete(id);
+				newobjects.forEach((newobj, newid) => {
+					objects.set(newid, newobj);
+				});
 				if (id === myData.id) {
 					myData.x = obj.x;
 					myData.y = obj.y;
@@ -499,6 +509,8 @@ ws.onmessage = (event) => {
 				}
 			});
 		} else if (json.type == "msg") {
+			messageToChat(`${json.from ? json.from+": " : ""} ${json.text}`);
+		} else if (json.type == "console") {
 			messageToChat(`${json.from ? json.from+": " : ""} ${json.text}`);
 		};
 	} catch (err) {console.error(err)};
@@ -534,9 +546,20 @@ gameCanvas.oncontextmenu = () => {
 		y = Math.floor(y/minimal)*minimal;
 		sendtows({
 			type: "console",
-			msg: `objects.set(Math.floor(Math.random() * 100000), new Obj(${x}, ${y}, ${console_mode.width}, ${console_mode.height}, ${console_mode.objmode}, ${console_mode.objtype}))`,
+			msg: `objects.set((${console_mode.ismap} ? "map" : "")+Math.floor(Math.random() * 100000),
+			new Obj(${x}, ${y}, ${console_mode.width}, ${console_mode.height}, "static", "block", "", ${console_mode.ismap}))`,
 			password: console_password
 		});
+		objects.set((console_mode.ismap ? "map" : "")+(Math.floor(Math.random() * 100000)), {
+			x,
+			y,
+			width: console_mode.width,
+			height: console_mode.height,
+			mode: "static",
+			type: "block",
+			color: "",
+			ismap: console_mode.ismap,
+		})
 	} else {
 		sendtows({type: "interact_RMB"});
 	};
@@ -547,13 +570,22 @@ gameCanvas.onclick = () => {
 	if (console_mode.mode === "build") {
 		objects.forEach((obj, id) => {
 			if (posInObj(camera.x+mouseX, camera.y+mouseY, obj)) {
-				console.log(id);
 				sendtows({
 					type: "console",
-					msg: `objects.delete(${id})`,
+					msg: `objects.delete("${id}")`,
 					password: console_password
 				});
 			}
+		});
+	} else if (console_mode.mode === "boom") {
+		sendtows({
+			type: "console",
+			msg: `for (let i = -10; i < 10; i++) {createBullet(myobj.x+myclient.mouseX, myobj.y+myclient.mouseY, (Math.random()-0.5)*30, (Math.random()-0.5)*30, {
+				livetime: 40,
+				dmg: 20,
+				owner: null,
+			})}`,
+			password: console_password
 		});
 	} else {
 		sendtows({type: "interact_LMB"});
@@ -669,7 +701,6 @@ function update() {
 
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
 	objects.forEach((obj, id) => {
 		let oldObj = oldObjects.get(id) ?? {x: myData.x, y: myData.y};
 		let visualObj = {x: 0, y: 0};
@@ -744,6 +775,10 @@ function draw() {
 			drawText(obj.text, visualObj.x-camera.x, visualObj.y-camera.y, obj.textColor, "20px arial", "center", "middle");
 		} else if (obj.type === "bullet") {
 			ctx.fillStyle = "yellow";
+			ctx.fillRect(visualObj.x-camera.x, visualObj.y-camera.y, obj.width, obj.height);
+		} else if (obj.type === "ladder") {
+			//drawImage(images.ladder, visualObj.x, visualObj.y, visualObj.width, visualObj.height, 0, "", false, false, 0, 0)
+			ctx.fillStyle = "brown";
 			ctx.fillRect(visualObj.x-camera.x, visualObj.y-camera.y, obj.width, obj.height);
 		} else {
 			ctx.fillStyle = obj.color || "black";

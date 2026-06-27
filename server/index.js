@@ -40,10 +40,10 @@ let newCollisionModel = true;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
-objects.set("map1", new Obj(100, -300, 200, 200, "static", "block", "", true));
-objects.set("map2", new Obj(100, -100, 200, 200, "static", "block", "", true));
-objects.set("map3", new Obj(100, 100, 200, 200, "static", "block", "", true));
-objects.set("map2", new Obj(100, 300, 200, 200, "static", "block", "", true));
+objects.set("map1", new Obj(-300, -100, 200, 200, "static", "block", "", true));
+objects.set("map2", new Obj(-100, -100, 200, 200, "static", "block", "", true));
+objects.set("map3", new Obj(100, -100, 200, 200, "static", "block", "", true));
+objects.set("map4", new Obj(300, -100, 200, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -90, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};

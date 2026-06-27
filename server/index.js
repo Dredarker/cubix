@@ -366,10 +366,8 @@ function updateNPCs() {
 		if (obj.aiTimer > 600) {
 			obj.randomAI = Math.round(Math.random()*1)+1
 			obj.aiTimer = 0;
-
 			obj.direction = Math.random()*2-1;
 		};
-
 		if (obj.randomAI == 1) {
   		if (obj.aiTimer == 300) {
 				obj.direction = 0;
@@ -385,7 +383,6 @@ function updateNPCs() {
 		} else {
     	const target = findNearestPlayer(obj, 700);
     	if (!target) return;
-
     	if (target.x < obj.x) {
     	  obj.vx -= obj.speed;
 	    } else {
@@ -537,12 +534,19 @@ wss.on("connection", (ws, req) => {
 						myclient.mouseY = data.mouseY;
 						let tmpspeed = obj.speed * (obj.onGround ? 1 : 0.1);
 
-						if (keys["KeyA"]) obj.vx += -tmpspeed;
-	      		else if (keys["KeyD"]) obj.vx += tmpspeed;
-	      		if (keys["Space"] && obj.onGround) {
-	      			obj.vy = obj.jumpPower;
-		      		obj.onGround = false;
-		    		}
+						if (myobj.mode === "kinetic") {
+							if (keys["KeyA"]) obj.x -= tmpspeed;
+	      			if (keys["KeyD"]) obj.x += tmpspeed;
+							if (keys["KeyW"]) obj.y -= tmpspeed;
+	      			if (keys["KeyS"]) obj.y += tmpspeed;
+						} else {
+							if (keys["KeyA"]) obj.vx -= tmpspeed;
+	      			else if (keys["KeyD"]) obj.vx += tmpspeed;
+	      			if (keys["Space"] && obj.onGround) {
+	      				obj.vy = obj.jumpPower;
+		      			obj.onGround = false;
+		    			}
+						}
 						try {
 							if (data.slot < 0) {myobj.selSlot = 0}
 							else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}

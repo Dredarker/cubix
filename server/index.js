@@ -421,6 +421,7 @@ function gameLoop() {
 		let objectssize = 0;
 		objects.forEach((obj, id) => {if (!obj.ismap) objectssize++});
 		framestosync = Math.floor((objectssize+3)/5);
+		if (frames % 60 == 0) msg("", clients, objectssize+"; "+framestosync);
 	}
 	frames++;
 

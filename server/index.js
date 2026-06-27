@@ -360,8 +360,7 @@ function sendMap(clientWS, objects) {
 			type: "map",
 			world: Object.fromEntries(objectsForClient.entries()),
 		}));
-	  }
-	});
+	};
 }
 
 function updateNPCs() {

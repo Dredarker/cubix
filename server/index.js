@@ -420,8 +420,8 @@ function gameLoop() {
 	if (optimizeSyncron) {
 		let objectssize = 0;
 		objects.forEach((obj, id) => {if (!obj.ismap) objectssize++});
-		framestosync = Math.floor((objectssize+3)/5);
-		if (frames % 60 == 0) msg("", clients, objectssize+"; "+framestosync);
+		framestosync = Math.floor(objectssize/5)+1;
+		//if (frames % 240 == 0) msg("", clients, objectssize+"; "+framestosync);
 	}
 	frames++;
 

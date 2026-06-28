@@ -65,8 +65,8 @@ function update() {
 		}
 		if (obj.mode === "dynamic") {
 			obj.vy += gravity;
-			obj.vy *= 0.95;
-			obj.vx = obj.vx*(obj.onGround ? 0.8 : 0.95 );
+			obj.vy *= 0.98;
+			obj.vx = obj.vx*(obj.onGround ? 0.8 : 0.98 );
 		}
 		if (
 			obj.mode === "dynamic" ||

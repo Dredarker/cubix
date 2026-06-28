@@ -52,6 +52,7 @@ for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
 
 function update() {
 	objects.forEach((obj, name) => {
+		if (obj.y > 100) obj.health -= 5;
 		if (obj.health <= 0) {
 			if (obj.type === "player") {
 				obj.x = 0;

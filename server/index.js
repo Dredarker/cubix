@@ -8,6 +8,11 @@ const bannedIps = new Set([
   "123.123.123.123"
 ]);
 
+const info = {
+	isCubixServer: true,
+	playersOnline: 0,
+	name: "Official Cubix Server"
+};
 let HTMLclient = "No client";
 fetch('https://raw.githubusercontent.com/Dredarker/game-server/refs/heads/main/client/index.html')
 	.then((response) => response.text())
@@ -23,11 +28,13 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("200 OK");
   }
+	if (req.url === "/ping") {
+		res.writeHead(200, { "Content-Type": "text/html" });
+		res.end(JSON.stringify(info));
+	}
 });
 const wss = new WebSocket.Server({ server });
-
 console.log(`WebSocket server started on port ${PORT}`);
-
 const clients = new Map();
 
 // game
@@ -411,6 +418,11 @@ function updateNPCs() {
 		}
   });
 }
+
+function updateInfo() {
+	info.playersOnline = clients.size;
+}
+
 let frames = 0;
 let framestosync = 3;
 let iferrorframestotryagain = 0;
@@ -433,6 +445,7 @@ function gameLoop() {
 	}
 	updateNPCs();
 	update();
+	if (frames % fps == 0) updateInfo();
 	if (iferrorframestotryagain <= 0) {
 		try {customUpdate()} catch (err) {
 			iferrorframestotryagain = 15*fps;

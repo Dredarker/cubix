@@ -1,7 +1,7 @@
 const http = require("http");
 const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
-import * from './config.js';
+const config = require("./config.js");
 
 const PORT = process.env.PORT || 3000;
 

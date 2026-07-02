@@ -1,6 +1,7 @@
 const http = require("http");
 const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
+import * from './config.js'
 
 const PORT = process.env.PORT || 3000;
 
@@ -11,8 +12,10 @@ const bannedIps = new Set([
 const info = {
 	isCubixServer: true,
 	playersOnline: 0,
-	name: "Official Cubix Server"
+	maxPlayersCount: config.maxPlayersCount,
+	name: config.name,
 };
+
 let HTMLclient = "No client";
 fetch('https://raw.githubusercontent.com/Dredarker/game-server/refs/heads/main/client/index.html')
 	.then((response) => response.text())
@@ -46,8 +49,8 @@ console.log("Initializating the game");
 
 const badwords = [];//["[ieе][б6][аеу][нnтt]", "шлю[xхh]", "[bб6][lл][яy]", "[xхh][уy][яйе]", "чл.н", "п[иi][з3z]д", "п[и]д", "[sсc][оo][sсc][aаиi]", "[тt][рp][аa][хxh]", "гн[иi]"];
 
-let gravity = 0.4;
-let newCollisionModel = true;
+let gravity = config.game.gravity;
+let newCollisionModel = config.game.useNewCollisionModel;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
@@ -59,7 +62,7 @@ objects.set("map1.-3ladder", new Obj(200, -600, 50, 600, "static", "ladder", "",
 objects.set("map1.-3", new Obj(250, -400, 350, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -150, 0, 0, "none", "text", "", true)));
 
-for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, 0, -100)};
+for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, config.player.startX, config.player.startY)};
 
 function update() {
 	objects.forEach((obj, name) => {
@@ -538,8 +541,6 @@ wss.on("connection", (ws, req) => {
 								req.headers["x-forwarded-for"] = fakeip;
 								myclient.ip = fakeip;
 								nickname += " [✔]";
-							} else {
-								nickname = "приёмный";
 							}
 						}
 
@@ -549,7 +550,8 @@ wss.on("connection", (ws, req) => {
 							nickname,
  						}));
 						myclient.nickname = nickname;
-						objects.set(id, new Player(nickname, 1.4, -11, new Obj(0, -100, 24, 80, "dynamic", "player", data.color, false, 100, ["pickaxe", "block", "pistol"], 5)));
+						let tmpcolor = config.allowPlayerOutfit ? data.color : config.player.colorDefault;
+						objects.set(id, new Player(nickname, 1.4, -11, new Obj(config.player.startX, config.player.startY, 24, 80, "dynamic", "player", tmpcolor, false, 100, config.player.inventory, config.player.invsize)));
 						msg("", clients, `${nickname} connected to game`);
 						myclient.joined = true;
 						sendMap(myclient.ws, objects);

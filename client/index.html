@@ -67,6 +67,9 @@
 			justify-content: center;
 			align-items: center;
 		}
+		#serverlist {
+			width: 300px;
+		}
 		#inventory {
 			background: #77777777;
 			position: absolute;
@@ -164,11 +167,11 @@
 				<div class="block">
 					<div class="block">
 						<div>
-							<input class="inline" id="nicknameInput"/>
-							<input class="inline" type="button" onclick="runGame()" value="Play"/>
-							<select class="inline" id="serverlist">
+							<select class="block" id="serverlist">
 								<option value="" disabled selected>---Select Server---</option>
 							</select>
+							<input class="inline-block" id="nicknameInput"/>
+							<input class="inline-block" type="button" onclick="runGame()" value="Play"/>
 						</div>
 						<p>------------------------------------</p>
 						<input class="inline" id="passwordInput" type="password"/>
@@ -270,11 +273,11 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 5];
+var gameVersion = [0, 3, 5, 1];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
-menu.style.width = "500px";
+menu.style.width = "600px";
 menu.style.height = "400px";
 menu.style.left = (document.documentElement.clientWidth/2 - parseInt(menu.style.width)/2)+"px";
 menu.style.top = (document.documentElement.clientHeight/2 - parseInt(menu.style.height)/2)+"px";
@@ -287,6 +290,7 @@ chatInput.maxLength = 250;
 nicknameInput.maxLength = 20;
 
 addServerToServerList("game-server-3k6f.onrender.com");
+addServerToServerList("cubix-test.onrender.com");
 function runGame() {
 let selected_server = document.getElementById("serverlist").value;
 if (!(nicknameInput.value.length >= 3 && nicknameInput.value.length <= nicknameInput.maxLength)) {
@@ -888,17 +892,18 @@ function addServerToServerList(serverURL) {
 	fetch("https://"+serverURL+"/ping")
 		.then((respone) => respone.json())
 		.then((responejson) => {
+			console.log(responejson);
 			if (!responejson.isCubixServer) {
 				serverOption.text += " (SERVER NOT FOR CUBIX)";
 				console.log(`Server ${serverURL} is pinged, but not said that it cubix server`);
 				return;
 			}
 			console.log(`Server ${serverURL} is pinged`);
-			serverOption.text = `${responejson.name} - ${responejson.playersOnline} players`
+			serverOption.text = `${responejson.name} - ${responejson.playersOnline}/${responejson.maxPlayersCount} players`
 			serverOption.disabled = false;
 		})
 		.catch((err) => {
-			console.log(`Server ${serverURL} is not working for now`);
+			console.error(`Server ${serverURL} is not working for now`);
 			serverOption.text += " (Unavailable)";
 		});
 	document.getElementById("serverlist").appendChild(serverOption);

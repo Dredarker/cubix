@@ -28,7 +28,7 @@
 			height: 300px;
 		}
 		#chatBox {
-			background: #777777aa;
+			background: #999999aa;
 			color: white;
 			width: 100%;
 			height: 264px;
@@ -37,10 +37,34 @@
 		}
 		#chatInput {
 			border-style: hidden;
+			background: #333333;
+			color: white;
+			width: 99%;
+			height: 24px;
+		}
+		#console {
+			word-wrap: break-word;
+			background: #777777aa;
+			margin: 0px;
+			color: white;
+			position: absolute;
+			bottom: -100px;
+			left: 0px;
+		}
+		#consoleBox {
+			background: #777777aa;
+			color: white;
+			width: 100%;
+			height: 98%;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		#consoleInput {
+			border-style: hidden;
 			background: #777777;
 			color: white;
-			width: 400px;
-			height: 24px;
+			width: 96%;
+			height: 16px;
 		}
 		div {
 			display: block;
@@ -87,9 +111,12 @@
 			margin-block-start: 2px;
 			margin-block-end: 2px;
 		}
-		a {font-family: arial;}
-		i {font-family: arial;}
-		b {font-family: arial;}
+		a,i,b {font-family: arial}
+		select, input {
+			border: 1px solid #444444;
+			background: #777777;
+			color: white;
+		}
 		#title {
 			font-size: 48px;
 		}
@@ -145,10 +172,6 @@
 <body>
 	<div id="game">
 		<canvas id="gameCanvas"></canvas>
-		<div id="chat">
-			<div id="chatBox"></div>
-			<input id="chatInput"/>
-		</div>
 		<div id="inventory" style="width: 64px;">
 			<img class="inline item" slot=0 />
 		</div>
@@ -157,6 +180,15 @@
 		</div>
 		<div id="button-jump">
 			<p class="colume" style="font-size: 128px">^</p>
+		</div>
+		<div id="chat">
+			<div id="chatBox"></div>
+			<input id="chatInput"/>
+		</div>
+		<div id="console">
+			<div id="consoleBox"></div>
+			<input id="consoleInput"/>
+			<input type="button" id="consoleButton" value="Run"/>
 		</div>
 	</div>
 	<div id="menu">
@@ -277,8 +309,9 @@ var gameVersion = [0, 3, 5, 1];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
-menu.style.width = "600px";
-menu.style.height = "400px";
+document.getElementById("console").style.display = "none";
+menu.style.width = "400px";
+menu.style.height = "420px";
 menu.style.left = (document.documentElement.clientWidth/2 - parseInt(menu.style.width)/2)+"px";
 menu.style.top = (document.documentElement.clientHeight/2 - parseInt(menu.style.height)/2)+"px";
 
@@ -343,7 +376,6 @@ sounds.new("damage5", "Я поражён!.wav", {volume: 0.1});
 sounds.new("pistolshoot", "PMshoot.mp3", {volume: 1});
 
 musics.source = `https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/snd/`;
-
 
 const helpBook = [
 	"Command Help:",
@@ -481,6 +513,13 @@ document.addEventListener("keydown", (event) => {
 			}
 			document.getElementById("chatInput").value = "";
 		} else {chatInput.focus()}
+	} else if (event.code == "Insert") {
+		let consoleDisplay = document.getElementById("console").style;
+		if (consoleDisplay.display == "none") {
+			consoleDisplay.display = "block";
+		} else {
+			consoleDisplay.display = "none";
+		}
 	}
 });
 
@@ -543,7 +582,7 @@ ws.onmessage = (event) => {
 		} else if (json.type == "msg") {
 			messageToChat(`${json.from ? json.from+": " : ""} ${json.text}`);
 		} else if (json.type == "console") {
-			messageToChat(`${json.from ? json.from+": " : ""} ${json.text}`);
+			messageToConsole(json.text);
 		};
 	} catch (err) {console.error(err)};
 };
@@ -597,6 +636,7 @@ gameCanvas.oncontextmenu = () => {
 	};
 	return false;
 };
+consoleButton.onclick = runConsole;
 
 gameCanvas.onclick = () => {
 	if (console_mode.mode === "build") {
@@ -647,8 +687,18 @@ function messageToChat(text, color = "white", safe = true) {
 	if (safe) {
 		message.textContent = text;
 	} else {message.innerHTML = text};
-	document.getElementById("chatBox").append(message);
+	let chatBox = document.getElementById("chatBox");
+	chatBox.append(message);
 	chatBox.scrollTop = 999999999;
+}
+
+function messageToConsole(text, color = "white") {
+	let message = document.createElement("p");
+	message.style.color = color;
+	message.innerHTML = text;
+	let consoleBox = document.getElementById("consoleBox")
+	consoleBox.append(message);
+	consoleBox.scrollTop = 999999999;
 }
 
 function updateInventory(inv, invsize) {
@@ -668,11 +718,6 @@ function updateInventory(inv, invsize) {
 		};
 		htmlinv.appendChild(item);
 	}
-}
-
-function sendtows(json) {
-	if (ws.readyState != 1) return;
-	ws.send(JSON.stringify(json));
 }
 
 function drawImage(image, x, y, width = 0, height = 0, rotation, color = "#000000", isClipped = true, isCenter = false, spritex = null, spritey = null) {
@@ -697,6 +742,17 @@ function drawImage(image, x, y, width = 0, height = 0, rotation, color = "#00000
 	ctx.restore();
 }
 
+function sendtows(json) {
+	if (ws.readyState != 1) return;
+	ws.send(JSON.stringify(json));
+}
+
+function runConsole() {
+	let code = document.getElementById("consoleInput").value;
+	sendtows({type: "console", msg: code, password: console_password});
+	code = "";
+}
+
 function drawText(text, x, y, color = "white", font = "12px arial", textAlign = "center", textBaseline = "middle") {
 	ctx.save();
 	ctx.fillStyle = color;
@@ -719,6 +775,12 @@ function update() {
 	canvas.height = document.documentElement.clientHeight;
 
 	chat.style.bottom = isMobile ? -(chat.clientHeight+16)+"px" : -gameCanvas.height+"px";
+	//
+	let documentConsole = document.getElementById("console");
+	documentConsole.style.bottom = (-canvas.height)+"px";
+	documentConsole.style.width = canvas.width+"px";
+	documentConsole.style.height = canvas.height+"px";
+	//
 
 	sendtows({
 		type: "sync",

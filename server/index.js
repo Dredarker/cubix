@@ -432,7 +432,7 @@ function updateInfo() {
 
 function logByDiscordWebhook(content, attachments = null) {
 	let json = {content, attachments};
-	fetch(config.webhook.logs, {
+	fetch(console.log(config.webhook.logs), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

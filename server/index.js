@@ -430,6 +430,17 @@ function updateInfo() {
 	info.playersOnline = clients.size;
 }
 
+function logByDiscordWebhook(content, attachments = null) {
+	let json = {content, attachments};
+	fetch(config.webhook.logs, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: json,
+	})
+}
+
 let frames = 0;
 let framestosync = 3;
 let iferrorframestotryagain = 0;
@@ -553,6 +564,7 @@ wss.on("connection", (ws, req) => {
 						let tmpcolor = config.allowPlayerOutfit ? data.color : config.player.colorDefault;
 						objects.set(id, new Player(nickname, 1.4, -11, new Obj(config.player.startX, config.player.startY, 24, 80, "dynamic", "player", tmpcolor, false, 100, config.player.inventory, config.player.invsize)));
 						msg("", clients, `${nickname} connected to game`);
+						logByDiscordWebhook(`${nickname} connected to game`);
 						myclient.joined = true;
 						sendMap(myclient.ws, objects);
 						break;
@@ -601,6 +613,7 @@ wss.on("connection", (ws, req) => {
     if (data.type === "msg") {
 			let str = data.text;
 			if (str.length <= 250) {
+				logByDiscordWebhook(`${nickname}: ${str}`);
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
 				msg(myclient.nickname, clients, str);
 			} else {
@@ -635,6 +648,7 @@ wss.on("connection", (ws, req) => {
 				type: "console",
 				text: result,
 			}))
+			logByDiscordWebhook(`${myclient.nickname} executed "${data.msg}"; result ${result}`);
 		};
 
 		if (data.type === "interact_LMB") {
@@ -670,7 +684,8 @@ wss.on("connection", (ws, req) => {
 
 	ws.on("close", () => {
   	console.log(`Client disconnected: ${clientId}`);
-		if (objects.has(clientId)) msg("", clients, `${clients.get(clientId).nickname} disconnected from game`);
+		if (objects.has(clientId)) msg("", clients, `${myclient.nickname} disconnected from game`);
+		logByDiscordWebhook(`${myclient.nickname} disconnected from game`);
     clients.delete(clientId);
 		objects.delete(clientId);
   });

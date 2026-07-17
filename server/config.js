@@ -24,8 +24,4 @@ export let config = {
 		// how many items can have player (int)
 		invsize: 5,
 	},
-	// Webhooks' URLs
-	webhook: {
-		logs: process.env.logWebhook,
-	}
 }

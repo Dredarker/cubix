@@ -430,7 +430,7 @@ function updateInfo() {
 	info.playersOnline = clients.size;
 }
 
-function logByDiscordWebhook(content, attachments = null) {
+async function logByDiscordWebhook(content, attachments = null) {
 	let json = {content};
 	fetch(process.env.logWebhook, {
     method: 'POST',
@@ -438,7 +438,7 @@ function logByDiscordWebhook(content, attachments = null) {
       'Content-Type': 'application/json'
     },
     body: json,
-	})
+	}).catch(console.error)
 }
 
 let frames = 0;
@@ -450,7 +450,7 @@ function gameLoop() {
 	if (optimizeSyncron) {
 		let objectssize = 0;
 		objects.forEach((obj, id) => {if (!obj.ismap) objectssize++});
-		framestosync = Math.floor(objectssize/5)+1;
+		framestosync = Math.floor(objectssize/6)+1;
 		//if (frames % 240 == 0) msg("", clients, objectssize+"; "+framestosync);
 	}
 	frames++;
@@ -502,8 +502,6 @@ wss.on("connection", (ws, req) => {
 		nickname: "",
 		joined: false,
   });
-
-  console.log(`Client connected: ${clientId} (${ip})`);
 
   ws.on("message", (message) => {
 		let myid;

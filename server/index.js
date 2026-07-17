@@ -429,7 +429,7 @@ function updateNPCs() {
 function updateInfo() {
 	info.playersOnline = clients.size;
 }
-/*
+
 function logByDiscordWebhook(content, attachments = null) {
 	let json = {content, attachments};
 	fetch(console.log(config.webhook.logs), {
@@ -439,8 +439,7 @@ function logByDiscordWebhook(content, attachments = null) {
     },
     body: json,
 	})
-}*/
-function logByDiscordWebhook() {}
+}
 
 let frames = 0;
 let framestosync = 3;

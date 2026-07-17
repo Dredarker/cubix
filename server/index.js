@@ -683,9 +683,8 @@ wss.on("connection", (ws, req) => {
   });
 
 	ws.on("close", () => {
-  	console.log(`Client disconnected: ${clientId}`);
-		if (objects.has(clientId)) msg("", clients, `${myclient.nickname} disconnected from game`);
-		logByDiscordWebhook(`${myclient.nickname} disconnected from game`);
+		if (objects.has(clientId)) msg("", clients, `${clients.get(clientId).nickname} disconnected from game`);
+		logByDiscordWebhook(`${clients.get(clientId).nickname} disconnected from game`);
     clients.delete(clientId);
 		objects.delete(clientId);
   });

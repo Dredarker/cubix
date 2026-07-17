@@ -26,6 +26,6 @@ export let config = {
 	},
 	// Webhooks' URLs
 	webhook: {
-		logs: process.env.CubixWebhook
+		logs: process.env.logWebhook,
 	}
 }

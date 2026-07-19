@@ -430,7 +430,7 @@ function updateInfo() {
 	info.playersOnline = clients.size;
 }
 
-async function logByDiscordWebhook(content, attachments = null) {
+async function oldLogByDiscordWebhook(content, attachments = null) {
 	let json = {content};
 	fetch(process.env.logWebhook, {
     method: 'POST',
@@ -438,7 +438,25 @@ async function logByDiscordWebhook(content, attachments = null) {
       'Content-Type': 'application/json'
     },
     body: json,
-	}).catch(console.error)
+	})
+}
+async function logByDiscordWebhook(content) {
+  const url = process.env.logWebhook;
+  const data = {content};
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      throw new Error(`Got error: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error to send:', error);
+  }
 }
 
 let frames = 0;

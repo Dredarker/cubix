@@ -629,7 +629,7 @@ wss.on("connection", (ws, req) => {
     if (data.type === "msg") {
 			let str = data.text;
 			if (str.length <= 250) {
-				logByDiscordWebhook(`${nickname}: ${str}`);
+				logByDiscordWebhook(`${myclient.nickname}: ${str}`);
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
 				msg(myclient.nickname, clients, str);
 			} else {

@@ -17,26 +17,35 @@ const info = {
 };
 
 let HTMLclient = "No client";
-fetch('https://raw.githubusercontent.com/Dredarker/game-server/refs/heads/main/client/index.html')
+fetch('https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/index.html')
 	.then((response) => response.text())
 	.then((text) => {HTMLclient = text})
-	.catch(error => console.error('Ошибка загрузки клиента:', error));
+	.catch(error => console.error('Error to load client:', error));
+let HTMLconsoleClient = "No client";
+fetch('https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/cmd/index.html')
+	.then((response) => response.text())
+	.then((text) => {HTMLconsoleClient = text})
+	.catch(error => console.error('Error to load console client:', error));
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*'); 
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); 
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS'); 
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(HTMLclient);
   }
+	if (req.url === "/console") {
+		res.writeHead(200, { "Content-Type": "text/html" });
+		res.end(HTMLconsoleClient);
+	}
   if (req.url === "/healthz") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end("200 OK");
   }
 	if (req.url === "/ping") {
-		res.writeHead(200, { "Content-Type": "text/html" });
+		res.writeHead(200, { "Content-Type": "application/json" });
 		res.end(JSON.stringify(info));
 	}
 });

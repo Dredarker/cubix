@@ -508,7 +508,6 @@ console.log("The game was successful initializated");
 // server
 let optimizeSyncron = true;
 wss.on("connection", (ws, req) => {
-	console.log(req)
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
     req.socket.remoteAddress;

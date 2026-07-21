@@ -64,12 +64,6 @@ let newCollisionModel = config.game.useNewCollisionModel;
 
 const objects = new Map();
 objects.set("bottom", new Obj(-25000, 0, 50000, 50000, "static", "block", "", true));
-objects.set("map-2.-2", new Obj(-400, -400, 200, 200, "static", "block", "", true));
-objects.set("map-1.-2", new Obj(-200, -400, 200, 200, "static", "block", "", true));
-objects.set("map0.-2", new Obj(0, -400, 200, 200, "static", "block", "", true));
-objects.set("map1.-4", new Obj(200, -800, 200, 200, "static", "block", "", true));
-objects.set("map1.-3ladder", new Obj(200, -600, 50, 600, "static", "ladder", "", true));
-objects.set("map1.-3", new Obj(250, -400, 350, 200, "static", "block", "", true));
 objects.set("text", new Text("Here a spawn", "black", new Obj(12, -150, 0, 0, "none", "text", "", true)));
 
 for (let i = 1; i <= 0; i++) {createNPC("Bot "+i, config.player.startX, config.player.startY)};
@@ -478,7 +472,7 @@ function gameLoop() {
 	if (optimizeSyncron) {
 		let objectssize = 0;
 		objects.forEach((obj, id) => {if (!obj.ismap) objectssize++});
-		framestosync = Math.floor(objectssize/6)+1;
+		framestosync = Math.floor(objectssize/10)+1;
 		//if (frames % 240 == 0) msg("", clients, objectssize+"; "+framestosync);
 	}
 	frames++;

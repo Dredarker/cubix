@@ -13,6 +13,9 @@ export let config = {
 		// use other collision model? (boolean)
 		useNewCollisionModel: true,
 	},
+	timeout: {
+		chat: [3, 2, 10],
+	},
 	player: {
 		// players' outfit, if allowPlayerOutfit is false (string/object)
 		colorDefault: "gray",

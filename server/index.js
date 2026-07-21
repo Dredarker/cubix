@@ -52,6 +52,7 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 console.log(`WebSocket server started on port ${PORT}`);
 const clients = new Map();
+const consoleclients = new Map();
 
 // game
 console.log("Initializating the game");
@@ -507,6 +508,7 @@ console.log("The game was successful initializated");
 // server
 let optimizeSyncron = true;
 wss.on("connection", (ws, req) => {
+	console.log(req.url)
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
     req.socket.remoteAddress;

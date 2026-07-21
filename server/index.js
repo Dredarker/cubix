@@ -501,6 +501,12 @@ console.log("The game was successful initializated");
 
 // server
 let optimizeSyncron = true;
+setInterval(() => {
+	clients.forEach((client, id) => {
+		if (client.timeout.chat > 0) client.timeout.chat -= 1;
+	})
+}, config.timeout.chat[1]*1000);
+
 wss.on("connection", (ws, req) => {
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
@@ -517,13 +523,16 @@ wss.on("connection", (ws, req) => {
   }
 
 	// saving client
-  const clientId = uuidv4().slice(0, 16);
-  clients.set(clientId, {
-  	ws,
-  	ip,
+	const clientId = uuidv4().slice(0, 16);
+	clients.set(clientId, {
+		ws,
+		ip,
 		nickname: "",
 		joined: false,
-  });
+		timeout: {
+			chat: 0,
+		},
+	});
 
   ws.on("message", (message) => {
 		let myid;
@@ -633,6 +642,7 @@ wss.on("connection", (ws, req) => {
     if (data.type === "msg") {
 			let str = data.text;
 			if (str.length <= 250) {
+				if (myclient.timeout.chat >= config.timeout.chat[0]) return;
 				logByDiscordWebhook(`${myclient.nickname}: ${str}`);
 				for (let filterword of badwords) {str = str.replace(new RegExp(filterword, "ig"), "***")};
 				msg(myclient.nickname, clients, str);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
 	<meta charset="UTF-8">
 	<title>Cubix</title>
@@ -164,9 +164,6 @@
 			background: #77777777;
 			border: #404040 solid 4px;
 		}
-		#center {
-			
-		}
   </style>
 </head>
 <body>
@@ -305,7 +302,7 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 5, 1];
+var gameVersion = [0, 3, 6];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
@@ -420,9 +417,13 @@ let oldObjects = new Map();
 
 document.addEventListener("keydown", (e) => {
 	if (!canvas.focused) return;
-	keys[e.code] = true;
+	if (e.code == "KeyW") {keys["Space"] = true}
+	else keys[e.code] = true;
 });
-document.addEventListener("keyup", e => keys[e.code] = false);
+document.addEventListener("keyup", (e) => {
+	if (e.code == "KeyW") {keys["Space"] = false}
+	else keys[e.code] = false;
+});
 
 document.addEventListener("keydown", (event) => {
 	if (event.code == "Enter") {
@@ -476,6 +477,13 @@ document.addEventListener("keydown", (event) => {
 						if (obj.nickname == "${args[1]}") {
 							obj.x = ${args[2]};
 							obj.y = ${args[3]};
+						}
+					})
+				`} else if (args[2] == "@s") {cmd += `
+					objects.forEach((obj, id) => {
+						if (obj.nickname == "${args[1]}") {
+							obj.x = myobj.x;
+							obj.y = myobj.y;
 						}
 					})
 				`} else {cmd += `
@@ -886,6 +894,17 @@ function draw() {
 			ctx.fillRect(visualObj.x-camera.x, visualObj.y-camera.y, obj.width, obj.height);
 		}
 	});
+
+	if (myData.inventory[myData.selSlot] == "block") {
+		let x = myData.x + myData.width/2 + mouseX;
+		let y = myData.y + myData.height/2 + mouseY;
+		x = Math.floor(x / 50) * 50;
+		y = Math.floor(y / 50) * 50;
+		console.log(x+":"+y);
+
+		ctx.fillStyle = "#20202040";
+		ctx.fillRect(x, y, 50, 50);
+	}
 
 	if (console_mode.mode == "build") {
 		let x = mouseX;

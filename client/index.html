@@ -117,6 +117,11 @@
 			background: #777777;
 			color: white;
 		}
+		.key {
+			border: 1px solid #444444;
+			background: #777777;
+			width: 64px;
+		}
 		#title {
 			font-size: 48px;
 		}
@@ -225,6 +230,28 @@
 						<input id="colorFootInput" type="color"/><p>Foot</p>
 					</div>
 				</div>
+				<div id="controlEdit" class="block">
+					<div>
+						<p class="inline">Move left</p>
+						<input value="KeyA" class="inline key" id="KeyA"/>
+					</div>
+					<div>
+						<p class="inline">Move right</p>
+						<input value="KeyD" class="inline key" id="KeyD"/>
+					</div>
+					<div>
+						<p class="inline">Control air up</p>
+						<input value="KeyW" class="inline key" id="KeyW"/>
+					</div>
+					<div>
+						<p class="inline">Control air down</p>
+						<input value="KeyS" class="inline key" id="KeyS"/>
+					</div>
+					<div>
+						<p class="inline">Jump</p>
+						<input value="Space" class="inline key" id="Space"/>
+					</div>
+				</div>
 			</div>
 			<div class="block colume">
 				<p>Our Community</p>
@@ -237,6 +264,18 @@
 </body>
 
 <script>
+for (let child of document.getElementById("controlEdit").children) {
+	let child2 = child.children[1];
+	child2.onkeydown = (event) => {
+		if (event.code == "Escape") {
+			
+		} else {
+			child2.value = event.code;
+		}
+		return false;
+	}
+}
+
 let platform = getUserAgent();
 let isMobile = (platform == "Android" || platform == "iOS");
 
@@ -307,8 +346,8 @@ version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
 document.getElementById("console").style.display = "none";
-menu.style.width = "400px";
-menu.style.height = "420px";
+menu.style.width = "450px";
+menu.style.height = "550px";
 menu.style.left = (document.documentElement.clientWidth/2 - parseInt(menu.style.width)/2)+"px";
 menu.style.top = (document.documentElement.clientHeight/2 - parseInt(menu.style.height)/2)+"px";
 
@@ -331,25 +370,30 @@ if (selected_server == "") {
 	error.innerHTML = "Select server";
 	return;
 }
+let mappedKeys = {};
+for (let child of document.getElementById("controlEdit").children) {
+	console.log(child.children[1].id+": "+child.children[1].value);
+	mappedKeys[child.children[1].id] = child.children[1].value;
+}
 
 menu.style.display = "none";
 const images = {};
 images.new = (name, source) => {
 	images[name] = new Image();
 	images[name].src = images.source+source;
-}
+};
 const sounds = {};
 sounds.new = (name, source, json) => {
 	sounds[name] = new Audio();
 	sounds[name].src = sounds.source+source;
 	sounds[name].volume = json.volume;
-}
+};
 const musics = {};
 musics.new = (name, source, json) => {
 	musics[name] = new Audio();
 	musics[name].src = musics.source+source;
 	musics[name].volume = json.volume;
-}
+};
 
 images.source = `https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/img/`;
 images.new("player_body", "body.png");
@@ -417,12 +461,10 @@ let oldObjects = new Map();
 
 document.addEventListener("keydown", (e) => {
 	if (!canvas.focused) return;
-	if (e.code == "KeyW") {keys["Space"] = true}
-	else keys[e.code] = true;
+	keys[mappedKeys[e.code]] = true;
 });
 document.addEventListener("keyup", (e) => {
-	if (e.code == "KeyW") {keys["Space"] = false}
-	else keys[e.code] = false;
+	keys[mappedKeys[e.code]] = false;
 });
 
 document.addEventListener("keydown", (event) => {
@@ -621,8 +663,8 @@ gameCanvas.oncontextmenu = () => {
 		let x = camera.x + mouseX;
 		let y = camera.y + mouseY;
 		let minimal = Math.min(console_mode.width, console_mode.width);
-		x = Math.floor(x/minimal)*minimal;
-		y = Math.floor(y/minimal)*minimal;
+		x = Math.round(x/minimal)*minimal;
+		y = Math.round(y/minimal)*minimal;
 		sendtows({
 			type: "console",
 			msg: `objects.set((${console_mode.ismap} ? "map" : "")+Math.floor(Math.random() * 100000),
@@ -896,14 +938,25 @@ function draw() {
 	});
 
 	if (myData.inventory[myData.selSlot] == "block") {
-		let x = myData.x + myData.width/2 + mouseX;
-		let y = myData.y + myData.height/2 + mouseY;
-		x = Math.floor(x / 50) * 50;
-		y = Math.floor(y / 50) * 50;
-		console.log(x+":"+y);
+		let x = mouseX+myData.x - canvas.width/2 + myData.width/2;
+		let y = mouseY+myData.y - canvas.height/2 + myData.height/2;
+		x = Math.floor(x / 50) * 50 - camera.x;
+		y = Math.floor(y / 50) * 50 - camera.y;
 
-		ctx.fillStyle = "#20202040";
+		ctx.fillStyle = "#20202080";
 		ctx.fillRect(x, y, 50, 50);
+	}
+	if (myData.inventory[myData.selSlot] == "pickaxe") {
+		let x = mouseX+myData.x - canvas.width/2 + myData.width/2 - camera.x;
+		let y = mouseY+myData.y - canvas.height/2 + myData.height/2 - camera.y;
+
+		ctx.strokeStyle = "#aa1010aa";
+		ctx.beginPath();
+		ctx.moveTo(x+16, y-16);
+		ctx.lineTo(x-16, y+16);
+		ctx.moveTo(x+16, y+16);
+		ctx.lineTo(x-16, y-16);
+		ctx.stroke();
 	}
 
 	if (console_mode.mode == "build") {
@@ -976,7 +1029,7 @@ function addServerToServerList(serverURL) {
 			console.log(responejson);
 			if (!responejson.isCubixServer) {
 				serverOption.text += " (SERVER NOT FOR CUBIX)";
-				console.log(`Server ${serverURL} is pinged, but not said that it cubix server`);
+				console.warn(`Server ${serverURL} is pinged, but not said that it cubix server`);
 				return;
 			}
 			console.log(`Server ${serverURL} is pinged`);

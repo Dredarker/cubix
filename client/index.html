@@ -174,7 +174,7 @@
 <body>
 	<div id="game">
 		<canvas id="gameCanvas"></canvas>
-		<div id="inventory" style="width: 64px;">
+		<div id="inventory">
 			<img class="inline item" slot=0 />
 		</div>
 		<div id="joystick-base">
@@ -341,7 +341,7 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 6];
+var gameVersion = [0, 3, 6, 1];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
@@ -372,8 +372,7 @@ if (selected_server == "") {
 }
 let mappedKeys = {};
 for (let child of document.getElementById("controlEdit").children) {
-	console.log(child.children[1].id+": "+child.children[1].value);
-	mappedKeys[child.children[1].id] = child.children[1].value;
+	mappedKeys[child.children[1].value] = child.children[1].id;
 }
 
 menu.style.display = "none";
@@ -414,7 +413,7 @@ sounds.new("damage2", "Бляха муха!.wav", {volume: 0.1});
 sounds.new("damage3", "Проебали.wav", {volume: 0.1});
 sounds.new("damage4", "Твою мать!.wav", {volume: 0.1});
 sounds.new("damage5", "Я поражён!.wav", {volume: 0.1});
-sounds.new("pistolshoot", "PMshoot.mp3", {volume: 1});
+sounds.new("pistolshoot", "PMshoot.mp3", {volume: 0.1});
 
 musics.source = `https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/snd/`;
 
@@ -458,6 +457,7 @@ document.onmousemove = () => {mouseX = event.clientX; mouseY = event.clientY}
 let objects = new Map();
 let map = new Map();
 let oldObjects = new Map();
+let particles = new Map();
 
 document.addEventListener("keydown", (e) => {
 	if (!canvas.focused) return;
@@ -597,6 +597,9 @@ ws.onmessage = (event) => {
 		if (json.type == "init") {
 			myData.id = json.clientId;
 			myData.nickname = json.nickname;
+			while (particles.size < 16) {
+				createCloud(true);
+			}
 		} else if (json.type == "map") {
 			new Map(Object.entries(json.world)).forEach((obj, id) => {
 				obj.ismap = true;
@@ -756,7 +759,6 @@ function updateInventory(inv, invsize) {
 	let f = isMobile ? (60+48)+"px" : -document.documentElement.clientHeight+"px";
 	htmlinv.replaceChildren();
 	htmlinv.style.bottom = f;
-	htmlinv.style.width = `${(64+6)*invsize}px`;
 	for (let i = 0; i < invsize; i++) {
 		let item = document.createElement("img");
 		item.src = `${images.source}${inv[i] ?? "none"}.png`;
@@ -818,11 +820,44 @@ function playSound(sound) {
 	sound.play();
 }
 
+function createParticle(x, y, width, height, lifetimeInFrames, color = "black", vx = 0, vy = 0, paralax = 1) {
+	particles.set(Math.random()*999999999, {x, y, width, height, vx, vy, lifetime:lifetimeInFrames, color, paralax})
+}
+
+function createCloud(isInit) {
+	let plx = Math.random()*0.2+0.1;
+	let width = Math.random()*150+100;
+	let height = Math.random()*100+50;
+	let x = !isInit ? Math.random()*canvas.width-width/2 : -width;
+	let y = -height/4;
+	createParticle((x+camera.x/(1/plx))/plx, y, width, height, 60*60, "#efefefaa", Math.random()*1.5+0.5, 0, plx);
+}
+
 function update() {
 	myframes++;
 	fbss++;
 	canvas.width = document.documentElement.clientWidth;
 	canvas.height = document.documentElement.clientHeight;
+	
+	particles.forEach((particle, id) => {
+		visx = (particle.x-camera.x)*particle.paralax;
+		visy = (particle.y-camera.y)*particle.paralax;
+		particle.x+=particle.vx;
+		particle.y+=particle.vy;
+		if (
+			--particle.lifetime <= 0
+			|| (
+				visx+particle.width < 0
+				|| visx > canvas.width
+				|| visy+particle.height < 0
+				|| visy > canvas.height
+			)
+		) particles.delete(id);
+	})
+	
+	while (particles.size < 16) {
+		createCloud(false);
+	}
 
 	chat.style.bottom = isMobile ? -(chat.clientHeight+16)+"px" : -gameCanvas.height+"px";
 	//
@@ -847,11 +882,16 @@ function update() {
 	});
 	myData.animHealth += (myData.health - myData.animHealth) / 5;
 	if (myData.health == Math.round(myData.animHealth)) myData.animHealth2 += (myData.health - myData.animHealth2) / 10;
-	if (fbss == maxfbss+600 && ws.readyState == 1) ws.close(1201);
+	if (fbss == maxfbss+300 && ws.readyState == 1) messageToChat("I think you too laggy. Check your connection to Internet.", "red");
 }
-
+'';
 function draw() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = "#66aaff";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	particles.forEach((particle, id) => {
+		ctx.fillStyle = particle.color || "black";
+		ctx.fillRect((particle.x-camera.x)*particle.paralax, (particle.y-camera.y)*particle.paralax, particle.width, particle.height);
+	})
 	objects.forEach((obj, id) => {
 		let oldObj = oldObjects.get(id) ?? {x: myData.x, y: myData.y};
 		let visualObj = {x: 0, y: 0};
@@ -1026,18 +1066,17 @@ function addServerToServerList(serverURL) {
 	fetch("https://"+serverURL+"/ping")
 		.then((respone) => respone.json())
 		.then((responejson) => {
-			console.log(responejson);
+			console.log(`Server ${serverURL} is pinged, ping data:`, responejson);
 			if (!responejson.isCubixServer) {
 				serverOption.text += " (SERVER NOT FOR CUBIX)";
 				console.warn(`Server ${serverURL} is pinged, but not said that it cubix server`);
 				return;
 			}
-			console.log(`Server ${serverURL} is pinged`);
 			serverOption.text = `${responejson.name} - ${responejson.playersOnline}/${responejson.maxPlayersCount} players`
 			serverOption.disabled = false;
 		})
 		.catch((err) => {
-			console.error(`Server ${serverURL} is not working for now`);
+			console.error(`Server ${serverURL} is not found (offline/incorrect ping?)`);
 			serverOption.text += " (Unavailable)";
 		});
 	document.getElementById("serverlist").appendChild(serverOption);

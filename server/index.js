@@ -335,6 +335,8 @@ function msg(from, to, text) {
 function server_sync() {
 	clients.forEach((clientData, clid) => {
 		if (!clientData.joined) return;
+		if (clientData.gamesynctimeout > 3) return;
+		clientData.gamesynctimeout++;
 		const client = clientData.ws;
   	if (client.readyState === WebSocket.OPEN) {
 			let objectsForClient = new Map();
@@ -530,6 +532,8 @@ wss.on("connection", (ws, req) => {
 		ip,
 		nickname: "",
 		joined: false,
+		joinedas: "",
+		gamesynctimeout: 0,
 		timeout: {
 			chat: 0,
 		},
@@ -635,6 +639,7 @@ wss.on("connection", (ws, req) => {
 							else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}
 							else myobj.selSlot = data.slot;
 						} catch {msg("", client, "Invalid selected slot")}
+						clientData.gamesynctimeout = 0;
 					}
 		  	});
       }

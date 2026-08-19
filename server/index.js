@@ -639,7 +639,7 @@ wss.on("connection", (ws, req) => {
 							else if (data.slot > myobj.inventorysize) {myobj.selSlot = myobj.inventorysize}
 							else myobj.selSlot = data.slot;
 						} catch {msg("", client, "Invalid selected slot")}
-						clientData.gamesynctimeout = 0;
+						myclient.gamesynctimeout = 0;
 					}
 		  	});
       }

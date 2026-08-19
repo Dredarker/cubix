@@ -335,7 +335,7 @@ function msg(from, to, text) {
 function server_sync() {
 	clients.forEach((clientData, clid) => {
 		if (!clientData.joined) return;
-		if (clientData.gamesynctimeout > 3) return;
+		if (clientData.gamesynctimeout > 2) return;
 		clientData.gamesynctimeout++;
 		const client = clientData.ws;
   	if (client.readyState === WebSocket.OPEN) {
@@ -458,10 +458,13 @@ async function logByDiscordWebhook(content) {
       body: JSON.stringify(data)
     });
     if (!response.ok) {
-      throw new Error(`Got error: ${response.status}`);
+			if (response.status == 429) {
+				console.log(`Cant send webhook: limit is reached.`);
+			}
+      throw new Error(`Got error after send webhook: ${response.status}`);
     }
   } catch (error) {
-    console.error('Error to send:', error);
+    console.error('Error to send webhook:', error);
   }
 }
 

@@ -106,6 +106,9 @@
 			cursor: pointer;
 			border: solid 4px gray;
 		}
+		.selected {
+			border: solid 6px darkgray!important;
+		}
 		p {
 			font-family: arial;
 			margin-block-start: 2px;
@@ -341,7 +344,7 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 6, 1];
+var gameVersion = [0, 3, 7];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
@@ -422,9 +425,6 @@ const helpBook = [
 	"/run (code) - executes code in server (A)",
 	"/crun (code) - executes code in client",
 	"/pass (password) - sets console password",
-	"/mode (mode) ... - selects console mode (A)",
-	"/tp <(pos)|[(nickname) (nickname|pos)]> - teleports you/player to position/player (A)",
-	"/kick (nickname) - kicks player (A)",
 	"/getid (nickname) - gets player's id (A)",
 	"--------------------------------------------------------------------",
 	"A - Requests console password",
@@ -433,7 +433,7 @@ const helpBook = [
 const myData = {
 	id: "", x: 0, y: 0, width: 0, height: 0, selSlot: 0,
 	esp: false, objtype: "box", health: 0, inventory: [], inventorysize: 0,
-	syncx: 0, syncy: 0, visx: 0, visy: 0, oldinventorysize: 0, oldhealth: 0, animHealth: 0, animHealth2: 0,
+	syncx: 0, syncy: 0, visx: 0, visy: 0, oldinventorysize: 0, oldhealth: 0, animHealth: 0, animHealth2: 0, oldSelSlot: 0,
 };
 const myObject = {};
 
@@ -483,75 +483,6 @@ document.addEventListener("keydown", (event) => {
 				console_password = inputvalue.slice(6);
 				localStorage.setItem("console_password", console_password);
 				messageToChat("Set console password to "+console_password, "#aaaaaa");
-			} else if (args[0] == "/mode") {
-				console_mode.mode = args[1] ?? "";
-				if (console_mode.mode == "") {
-					messageToChat("Avaliable modes:", "#aaaaaa");
-					messageToChat(" • build (width) (height) (ismap)", "#aaaaaa");
-					messageToChat(" • boom", "#aaaaaa");
-					messageToChat("-------------------------------------", "#aaaaaa");
-					messageToChat("Also emtped mode", "#aaaaaa");
-				} else {
-					if (args[1] == "build") {
-						console_mode.width = args[2];
-						console_mode.height = args[3];
-						console_mode.ismap = args[4];
-					}
-					if (args[1] == "boom") {
-						console_mode.alsodmgme = args[2];
-					}
-					messageToChat(`Set console mode to ${console_mode.mode}`, "#aaaaaa")
-				}
-			} else if (args[0] == "/tp") {
-				let cmd = `let myobj = objects.get(myid);`;
-				if (!isNaN(parseInt(args[1]))) {cmd += `
-					myobj.x = ${args[1]};
-					myobj.y = ${args[2]};
-				`} else if (args[2] == undefined) {cmd += `
-					objects.forEach((obj, id) => {
-						if (obj.nickname == "${args[1]}") {
-							myobj.x = obj.x;
-							myobj.y = obj.y;
-						}
-					})
-				`} else if (!isNaN(parseInt(args[2]))) {cmd += `
-					objects.forEach((obj, id) => {
-						if (obj.nickname == "${args[1]}") {
-							obj.x = ${args[2]};
-							obj.y = ${args[3]};
-						}
-					})
-				`} else if (args[2] == "@s") {cmd += `
-					objects.forEach((obj, id) => {
-						if (obj.nickname == "${args[1]}") {
-							obj.x = myobj.x;
-							obj.y = myobj.y;
-						}
-					})
-				`} else {cmd += `
-					let obj1;
-					objects.forEach((obj, id) => {if (obj.nickname == "${args[1]}") obj1 = obj})
-					objects.forEach((objtarget, id) => {
-						if (objtarget.nickname == "${args[2]}") {
-							obj1.x = objtarget.x;
-							obj1.y = objtarget.y;
-						}
-					})
-				`};
-				sendtows({type: "console", msg: cmd, password: console_password})
-			} else if (args[0] == "/kick") {
-				sendtows({type: "console", msg: `
-					clients.forEach((client, id) => {if (client.nickname == "${args[1]}") client.ws.terminate(4021)})
-				`, password: console_password})
-			} else if (args[0] == "/getid") {
-				sendtows({type: "console", msg: `
-					clients.forEach((client, id) => {
-						if (client.nickname == "${args[1]}") {
-							json = {type: "msg", text: id};
-							clients.get(myid).ws.send(JSON.stringify(json));
-						}
-					})
-				`, password: console_password})
 			} else if (args[0] == "/help") {
 				for (let textline of helpBook) {messageToChat(textline)}
 			} else if (args[0] == "/getconsolepassword") {
@@ -587,6 +518,7 @@ ws.onopen = (e) => {
 			leg: colorLegInput.value,
 			foot: colorFootInput.value,
 		},
+		gameVersion,
 	});
 	game.style.display = "block";
 	gameLoop();
@@ -629,7 +561,8 @@ ws.onmessage = (event) => {
 					myData.oldinventorysize = myData.inventorysize;
 					myData.inventorysize = obj.invsize;
 					if (myData.oldinventorysize != myData.inventorysize ||
-					String(myData.oldinventory) != String(myData.inventory)) updateInventory(myData.inventory, myData.inventorysize);
+					String(myData.oldinventory) != String(myData.inventory) ||
+					myData.selSlot != myData.oldSelSlot) updateInventory(myData.inventory, myData.inventorysize);
 				}
 			});
 		} else if (json.type == "msg") {
@@ -764,9 +697,14 @@ function updateInventory(inv, invsize) {
 		item.src = `${images.source}${inv[i] ?? "none"}.png`;
 		item.style.bottom = "";
 		item.setAttribute('slot', i);
+		item.className = "";
 		item.className += "item";
+		if (item.getAttribute("slot") == myData.selSlot) item.className += " selected";
 		item.onclick = () => {
+			myData.oldSelSlot = myData.selSlot;
+			htmlinv.children[myData.oldSelSlot].className = "item";
 			myData.selSlot = item.getAttribute("slot");
+			item.className += " selected";
 		};
 		htmlinv.appendChild(item);
 	}

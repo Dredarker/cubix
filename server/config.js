@@ -9,7 +9,7 @@ export let config = {
 	maxPlayersCount: 10,
 	game: {
 		// how fast falles player and objects (int)
-		gravity: 0.4,
+		gravity: 0.9,
 		// use other collision model? (boolean)
 		useNewCollisionModel: true,
 	},

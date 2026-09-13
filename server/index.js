@@ -54,8 +54,8 @@ function addBody(id, obj) {
     isStatic: obj.mode === "static" || obj.ismap,
     label: id,
     restitution: 0,
-    friction: obj.type === "player" ? 0.001 : 0.8,
-    frictionAir: obj.type === "player" ? 0.04 : 0.01,
+    friction: 0.8,
+    frictionAir: 0.01,
     inertia: Infinity
   });
   obj.body = body;

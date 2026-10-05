@@ -54,7 +54,7 @@ function addBody(id, obj) {
     isStatic: obj.mode === "static" || obj.ismap,
     label: id,
     restitution: 0,
-    friction: 0.8,
+    friction: 0.1,
     frictionAir: 0.01,
     inertia: Infinity
   });

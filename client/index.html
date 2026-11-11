@@ -553,31 +553,33 @@ document.addEventListener("keyup", (e) => {
 
 document.addEventListener("keydown", (event) => {
 	if (event.code == "Enter") {
-		if (!canvas.focused) {
-			let inputvalue = document.getElementById("chatInput").value;
-			if (inputvalue === "") return;
-			let args = inputvalue.split(" ");
-			if (args[0] == "/run") {
-				sendtows({type: "console", msg: inputvalue.slice(5), password: console_password})
-			} else if (args[0] == "/crun") {
-				let result;
-				try {result = eval(inputvalue.slice(6))} catch (err) {result = err}
-				messageToChat(result);
-			} else if (args[0] == "/pass") {
-				console_password = inputvalue.slice(6);
-				localStorage.setItem("console_password", console_password);
-				messageToChat("Set console password to "+console_password, "#aaaaaa");
-			} else if (args[0] == "/help") {
-				for (let textline of helpBook) {messageToChat(textline)}
-			} else if (args[0] == "/getconsolepassword") {
-				//jumpscare()
-			} else if (inputvalue.startsWith('/')) {
-				messageToChat(`Invalid/Unknown command "${inputvalue}"`, "red")
-			} else {
-				sendtows({type: "msg", text: inputvalue})
-			}
-			document.getElementById("chatInput").value = "";
-		} else {chatInput.focus()}
+		if (document.getElementById("console").style.display == "none") {
+			if (!canvas.focused) {
+				let inputvalue = document.getElementById("chatInput").value;
+				if (inputvalue === "") return;
+				let args = inputvalue.split(" ");
+				if (args[0] == "/run") {
+					sendtows({type: "console", msg: inputvalue.slice(5), password: console_password})
+				} else if (args[0] == "/crun") {
+					let result;
+					try {result = eval(inputvalue.slice(6))} catch (err) {result = err}
+					messageToChat(result);
+				} else if (args[0] == "/pass") {
+					console_password = inputvalue.slice(6);
+					localStorage.setItem("console_password", console_password);
+					messageToChat("Set console password to "+console_password, "#aaaaaa");
+				} else if (args[0] == "/help") {
+					for (let textline of helpBook) {messageToChat(textline)}
+				} else if (args[0] == "/getconsolepassword") {
+					//jumpscare()
+				} else if (inputvalue.startsWith('/')) {
+					messageToChat(`Invalid/Unknown command "${inputvalue}"`, "red")
+				} else {
+					sendtows({type: "msg", text: inputvalue})
+				}
+				document.getElementById("chatInput").value = "";
+			} else {chatInput.focus()}
+		}
 	} else if (event.code == "Insert") {
 		let consoleDisplay = document.getElementById("console").style;
 		if (consoleDisplay.display == "none") {

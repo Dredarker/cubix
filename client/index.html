@@ -250,7 +250,7 @@
 			<input type="button" id="consoleButton" value="Run"/>
 		</div>
 	</div>
-	<div id="menu">
+	<div id="menu" style="display:none">
 		<b id="title">Cubix</b>
 		<i id="version">v0.0</i>
 		<span style="display: inline-flex; align-items: center">
@@ -341,11 +341,16 @@
 	</div>
 	<div id="errorPage">
 	</div>
-</body>
+	<div id="loading">
+		Loading...
+		<noscript>JavaScript is off, game can't be loaded</noscript>
+	</div>
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
 <script src="https://raw.githubusercontent.com/Dredarker/cubix/main/shared/game-engine.js"></script>
 <script src="https://raw.githubusercontent.com/Dredarker/cubix/main/client/p2p.js"></script>
 <script>
+menu.style.display = "";
+loading.style.display = "none";
 for (let child of document.getElementById("controlEdit").children) {
 	let child2 = child.children[1];
 	child2.onkeydown = (event) => {
@@ -1109,4 +1114,5 @@ function addDedicatedServerToServerList(serverURL) {
 	document.getElementById("dedicatedsServers").appendChild(serverHTML);
 }
 </script>
+	</body>
 </html>

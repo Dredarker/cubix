@@ -10,9 +10,8 @@ const fps = 60;
 const frameMs = 1000 / fps;
 const gravity = config.game.gravity;
 
-const bannedIps = new Set(["123.123.123.123"]);
+const bannedIps = new Set([]);
 const clients = new Map();
-const consoleclients = new Map();
 const objects = new Map();
 const bodyToObject = new Map();
 
@@ -23,8 +22,6 @@ engine.velocityIterations = 6;
 const info = {isCubixServer: true, playersOnline: 0, maxPlayersCount: config.maxPlayersCount, name: config.name};
 let HTMLclient = "No client";
 fetch("https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/client/index.html").then(r => r.text()).then(t => HTMLclient = t).catch(e => console.error("Error to load client:", e));
-let HTMLconsoleClient = "No client";
-fetch("https://raw.githubusercontent.com/Dredarker/cubix/refs/heads/main/cmd/index.html").then(r => r.text()).then(t => HTMLconsoleClient = t).catch(e => console.error("Error to load console client:", e));
 
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -99,6 +96,7 @@ function server_sync(){clients.forEach((clientData,clid)=>{if(!clientData.joined
 function sendMap(ws){if(ws.readyState!==WebSocket.OPEN)return;const world={};objects.forEach((obj,id)=>{if(!obj.ismap)return;world[id]={x:Math.round(obj.x),y:Math.round(obj.y),width:obj.width,height:obj.height,type:obj.type,color:obj.color};if(obj.text)world[id].text=obj.text;if(obj.textColor)world[id].textColor=obj.textColor;});ws.send(JSON.stringify({type:"map",world}));}
 function updateInfo(){info.playersOnline=clients.size;}
 async function logByDiscordWebhook(content){const url=process.env.logWebhook;if(!url)return;try{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content})});if(!r.ok)console.error(`Got error after send webhook: ${r.status}`);}catch(e){console.error("Error to send webhook:",e);}}
+
 let frames=0,framestosync=3,optimizeSyncron=true,iferrorframestotryagain=0;
 function gameLoop(){frames++;if(optimizeSyncron){let n=0;objects.forEach(o=>{if(!o.ismap)n++;});framestosync=Math.floor(n/10)+1;}if(iferrorframestotryagain<=0){try{updatePhysics();}catch(err){iferrorframestotryagain=15*fps;msg("",clients,String(err));}}else iferrorframestotryagain--;if(frames%fps===0)updateInfo();if(frames%framestosync===0)server_sync();}
 setInterval(gameLoop,frameMs);

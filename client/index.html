@@ -342,7 +342,9 @@
 	<div id="errorPage">
 	</div>
 </body>
-
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/shared/game-engine.js"></script>
+<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/client/p2p.js"></script>
 <script>
 for (let child of document.getElementById("controlEdit").children) {
 	let child2 = child.children[1];
@@ -1107,7 +1109,4 @@ function addDedicatedServerToServerList(serverURL) {
 	document.getElementById("dedicatedsServers").appendChild(serverHTML);
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
-<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/shared/game-engine.js"></script>
-<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/client/p2p.js"></script>
 </html>

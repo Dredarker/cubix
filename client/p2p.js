@@ -173,6 +173,7 @@
       this.hostJoined = false;
       this.hostNickname = "";
       this.frames = 0;
+      this.chatFrames = 0;
       this.peers = new Map();
       this.interval = null;
       this.closed = false;
@@ -273,8 +274,9 @@
 
     handleChat(id, client, value) {
       const text = String(value || "");
-      if (text.length > 250 || client.timeout.chat > 0) return;
-      client.timeout.chat = this.game.config.timeout?.chat?.[1] || 2;
+      const chatLimits = this.game.config.timeout?.chat || [3, 2];
+      if (text.length > 250 || client.timeout.chat >= chatLimits[0]) return;
+      client.timeout.chat++;
       const nickname = id === this.hostId
         ? this.hostNickname
         : this.peers.get(id)?.nickname;
@@ -463,7 +465,23 @@
       }
 
       this.frames++;
-      if (this.frames % 3 !== 0) return;
+      this.chatFrames++;
+
+      const chatInterval = (this.game.config.timeout?.chat?.[1] || 2) * 60;
+      if (this.chatFrames >= chatInterval) {
+        this.chatFrames = 0;
+        for (const peer of this.peers.values()) {
+          if (peer.client.timeout.chat > 0) peer.client.timeout.chat--;
+        }
+        if (this.hostClient.timeout.chat > 0) this.hostClient.timeout.chat--;
+      }
+
+      let objectCount = 0;
+      this.game.objects.forEach(obj => {
+        if (!obj.ismap) objectCount++;
+      });
+      const framesToSync = Math.floor(objectCount / 10) + 1;
+      if (this.frames % framesToSync !== 0) return;
 
       this.emit({
         type: "sync",
@@ -477,11 +495,6 @@
           });
         }
       }
-
-      for (const peer of this.peers.values()) {
-        if (peer.client.timeout.chat > 0) peer.client.timeout.chat--;
-      }
-      if (this.hostClient.timeout.chat > 0) this.hostClient.timeout.chat--;
     }
 
     close(code = 1000, reason = "P2P host closed") {

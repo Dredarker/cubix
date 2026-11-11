@@ -142,6 +142,54 @@
 			width: 300px
 		}
 
+		#p2pModal {
+			position: fixed;
+			inset: 0px;
+			z-index: 1000;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: #00000088;
+		}
+		#p2pModalPanel {
+			box-sizing: border-box;
+			width: 420px;
+			max-width: calc(100vw - 32px);
+			padding: 24px;
+			background: #777777ee;
+			border: #404040 solid 4px;
+			color: white;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		#p2pModalPanel input,
+		#p2pModalPanel textarea {
+			box-sizing: border-box;
+			width: 100%;
+			padding: 8px;
+			background: #999999;
+			border: 1px solid #444444;
+			color: white;
+		}
+		#p2pModalPanel textarea {
+			min-height: 76px;
+			resize: vertical;
+		}
+		#p2pModalActions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-top: 12px;
+		}
+		#p2pModalActions input {
+			width: auto;
+			min-width: 110px;
+			cursor: pointer;
+		}
+		#createP2PButton { cursor: pointer; margin-top: 8px; }
+		#p2pStatus { max-width: 300px; font-size: 12px; }
+
 		#joystick-base {
 			position: fixed;
 			left: 40px;
@@ -270,9 +318,26 @@
 					<h2>P2Ps</h2>
 					<div id="P2PsServers">
 					</div>
+					<input type="button" id="createP2PButton" value="Create Server"/>
+					<p id="p2pStatus">Connecting to P2P directory...</p>
 				</div>
 			</div>
 		</span>
+	</div>
+	<div id="p2pModal">
+		<div id="p2pModalPanel">
+			<b class="smallTitle">Create P2P Server</b>
+			<label for="p2pRoomName">Room name</label>
+			<input id="p2pRoomName" maxlength="40" placeholder="Room name"/>
+			<label for="p2pRoomDescription">Description</label>
+			<textarea id="p2pRoomDescription" maxlength="180" placeholder="Description (optional)"></textarea>
+			<label for="p2pMaxPlayers">Maximum players</label>
+			<input id="p2pMaxPlayers" type="number" min="2" max="16" value="8"/>
+			<div id="p2pModalActions">
+				<input type="button" id="p2pCancelButton" value="Cancel"/>
+				<input type="button" id="p2pCreateButton" value="Create Server"/>
+			</div>
+		</div>
 	</div>
 	<div id="errorPage">
 	</div>
@@ -350,6 +415,7 @@ if (isMobile) { //-------------------------------------for Mobile
 } //----------------------Mobile step end
 
 let server = "";
+let ws = null;
 let fbss = 0;
 let maxfbss = 0;
 let islaggy = false;
@@ -380,7 +446,7 @@ if (!(nicknameInput.value.length >= 3 && nicknameInput.value.length <= nicknameI
 	error.innerHTML = "Nickname's length need be 3 - "+nicknameInput.maxLength;
 	return;
 }
-if (selected_server == "") {
+if (selected_server == null || selected_server === "") {
 	error.innerHTML = "Select server";
 	return;
 }
@@ -515,7 +581,7 @@ document.addEventListener("keydown", (event) => {
 	}
 });
 
-const ws = new WebSocket("wss://"+selected_server);
+ws = typeof selected_server === "string" ? new WebSocket("wss://"+selected_server) : selected_server;
 server = ws;
 ws.onopen = (e) => {
 	sendtows({
@@ -1041,4 +1107,7 @@ function addDedicatedServerToServerList(serverURL) {
 	document.getElementById("dedicatedsServers").appendChild(serverHTML);
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/shared/game-engine.js"></script>
+<script src="https://raw.githubusercontent.com/Dredarker/cubix/main/client/p2p.js"></script>
 </html>

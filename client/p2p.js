@@ -234,7 +234,7 @@
     }
 
     cleanNickname(value) {
-      const allowed = \`АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!"№;%:?*()_+@#$^&-=.\\\\[]{}\`~\`;
+      const allowed = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЮЯабвгдеёжзийклмнопрстуфхцчшщъыьABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!№;%:?*()_+@#$^&-=.\\[]{}~";
       const nickname = [...String(value || "")]
         .filter(char => allowed.includes(char))
         .join("");

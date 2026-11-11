@@ -22,7 +22,20 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.url === "/") { res.writeHead(200, {"Content-Type": "text/html"}); return res.end(HTMLclient); }
+  if (req.url === "/") {
+    const gameConfig = {
+      allowPlayerOutfit: config.allowPlayerOutfit,
+      game: config.game,
+      player: config.player,
+      timeout: config.timeout,
+    };
+    const html = HTMLclient.replace(
+      "</body>",
+      "<script>window.CUBIX_GAME_CONFIG = " + JSON.stringify(gameConfig) + ";</script></body>"
+    );
+    res.writeHead(200, {"Content-Type": "text/html"});
+    return res.end(html);
+  }
   if (req.url === "/console") { res.writeHead(200, {"Content-Type": "text/html"}); return res.end(HTMLconsoleClient); }
   if (req.url === "/healthz") { res.writeHead(200, {"Content-Type": "text/plain"}); return res.end("200 OK"); }
   if (req.url === "/ping") { res.writeHead(200, {"Content-Type": "application/json"}); return res.end(JSON.stringify(info)); }
@@ -185,10 +198,13 @@ function handleP2PMessage(ws, data) {
     return;
   }
 
-  if (action === "leave") {
+  if (action === "leave" || action === "peer-left") {
     if (ws.p2pRole === "guest") {
       const room = p2pRooms.get(ws.p2pRoomId);
       removeP2PPeer(room, ws.p2pPeerId);
+    } else if (ws.p2pRole === "host") {
+      const room = p2pRooms.get(ws.p2pRoomId);
+      removeP2PPeer(room, String(data.peerId || ""));
     }
     return;
   }

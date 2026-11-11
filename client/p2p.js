@@ -285,21 +285,47 @@
 
     runConsole(data) {
       let result;
+      const engine = this.game;
+      function Obj(...args) {
+        return engine.createObj(...args);
+      }
+      function Text(text, textColor, obj) {
+        return engine.createText(text, textColor, obj);
+      }
+      function Player(nickname, speed, jumpPower, obj) {
+        return engine.createPlayer(nickname, speed, jumpPower, obj);
+      }
+      function createNPC(name, x, y, color = {}) {
+        return engine.createNPC(name, x, y, color);
+      }
+
       try {
         const execute = new Function(
-          "objects", "createObject", "removeObject", "createObj",
-          "createText", "createPlayer", "createBullet", "engine",
+          "objects", "Obj", "Text", "Player",
+          "createObject", "removeObject", "addBody", "syncObjectFromBody",
+          "createNPC", "createBullet", "updatePhysics", "updateNPCs",
+          "updateGroundState", "distanceBetween", "posInObj",
+          "findNearestPlayer", "engine",
           "return eval(" + JSON.stringify(String(data.msg || "")) + ");"
         );
         result = execute(
-          this.game.objects,
-          this.game.createObject.bind(this.game),
-          this.game.removeObject.bind(this.game),
-          this.game.createObj.bind(this.game),
-          this.game.createText.bind(this.game),
-          this.game.createPlayer.bind(this.game),
-          this.game.createBullet.bind(this.game),
-          this.game
+          engine.objects,
+          Obj,
+          Text,
+          Player,
+          engine.createObject.bind(engine),
+          engine.removeObject.bind(engine),
+          engine.addBody.bind(engine),
+          engine.syncObjectFromBody.bind(engine),
+          createNPC,
+          engine.createBullet.bind(engine),
+          engine.updatePhysics.bind(engine),
+          engine.updateNPCs.bind(engine),
+          engine.updateGroundState.bind(engine),
+          engine.distanceBetween.bind(engine),
+          engine.posInObj.bind(engine),
+          engine.findNearestPlayer.bind(engine),
+          engine
         );
         try {
           result = JSON.stringify(result);

@@ -13,6 +13,34 @@ const bannedIps = new Set([]);
 const clients = new Map();
 const game = new CubixGameEngine(config);
 const objects = game.objects;
+const bodyToObject = game.bodyToObject;
+const engine = game.engine;
+const gravity = config.game.gravity;
+const Matter = require("matter-js");
+const { Engine, Bodies, Body, World, Events } = Matter;
+
+// Keep the classic server's console API available after moving the engine.
+function Obj(...args) { return game.createObj(...args); }
+function Text(text, textColor, obj) { return game.createText(text, textColor, obj); }
+function Player(nickname, speed, jumpPower, obj) {
+  return game.createPlayer(nickname, speed, jumpPower, obj);
+}
+function createObject(id, obj) { return game.createObject(id, obj); }
+function removeObject(id) { return game.removeObject(id); }
+function addBody(id, obj) { return game.addBody(id, obj); }
+function syncObjectFromBody(obj) { return game.syncObjectFromBody(obj); }
+function createNPC(name, x, y, color = {}) { return game.createNPC(name, x, y, color); }
+function createBullet(x, y, vx, vy, options) {
+  return game.createBullet(x, y, vx, vy, options);
+}
+function updatePhysics() { return game.updatePhysics(); }
+function updateNPCs() { return game.updateNPCs(); }
+function updateGroundState() { return game.updateGroundState(); }
+function distanceBetween(x1, y1, x2, y2) {
+  return game.distanceBetween(x1, y1, x2, y2);
+}
+function posInObj(x, y, obj) { return game.posInObj(x, y, obj); }
+function findNearestPlayer(npc) { return game.findNearestPlayer(npc); }
 
 const info = {isCubixServer: true, playersOnline: 0, maxPlayersCount: config.maxPlayersCount, name: config.name};
 let HTMLclient = "No client";

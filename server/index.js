@@ -1,4 +1,6 @@
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const WebSocket = require("ws");
 const {v4: uuidv4} = require("uuid");
 const {config} = require("./config.js");
@@ -50,6 +52,18 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.url.startsWith("/client/")) {
+    const filePath = path.join(__dirname, "..", req.url.split("?")[0]);
+    const contentTypes = { ".js": "application/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".wav": "audio/wav", ".mp3": "audio/mpeg" };
+    try {
+      const data = fs.readFileSync(filePath);
+      res.writeHead(200, { "Content-Type": contentTypes[path.extname(filePath)] || "application/octet-stream", "Cache-Control": "no-cache" });
+      return res.end(data);
+    } catch (error) {
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      return res.end("Not found");
+    }
+  }
   if (req.url === "/") {
     const gameConfig = {
       allowPlayerOutfit: config.allowPlayerOutfit,

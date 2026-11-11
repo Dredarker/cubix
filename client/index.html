@@ -114,10 +114,10 @@
 			margin-block-start: 2px;
 			margin-block-end: 2px;
 		}
-		a,i,b {font-family: arial}
+		* {font-family: arial}
 		select, input {
 			border: 1px solid #444444;
-			background: #777777;
+			background: #999999;
 			color: white;
 		}
 		.key {
@@ -134,6 +134,12 @@
 		.colume {
 			text-align: center;
 			margin: 32px;
+		}
+		.serverLine {
+			border: 1px gray solid;
+			border-radius: 4px;
+			background-color: #dddddd;
+			width: 300px
 		}
 
 		#joystick-base {
@@ -199,18 +205,13 @@
 	<div id="menu">
 		<b id="title">Cubix</b>
 		<i id="version">v0.0</i>
-		<div class="block">
-			<div class="block colume">
+		<span style="display: inline-flex; align-items: center">
+			<div class="inline colume">
 				<div class="block">
 					<div class="block">
 						<div>
-							<select class="block" id="serverlist">
-								<option value="" disabled selected>---Select Server---</option>
-							</select>
-							<input class="inline-block" id="nicknameInput"/>
-							<input class="inline-block" type="button" onclick="runGame()" value="Play"/>
+							<input class="inline" id="nicknameInput"/>
 						</div>
-						<p>------------------------------------</p>
 						<input class="inline" id="passwordInput" type="password"/>
 					</div>
 					<b style="color:red" id="error"></b>
@@ -255,12 +256,23 @@
 						<input value="Space" class="inline key" id="Space"/>
 					</div>
 				</div>
+				<div class="colume">
+					<p>Our Community</p>
+					<a href="https://discord.gg/eQyezGmJHT">Discord</a>
+				</div>
 			</div>
-			<div class="block colume">
-				<p>Our Community</p>
-				<a href="https://discord.gg/eQyezGmJHT">Discord</a>
+			<div class="colume" id="servers">
+				<h1>Servers</h1>
+				<div>
+					<h2>Dedicateds</h2>
+					<div id="dedicatedsServers">
+					</div>
+					<h2>P2Ps</h2>
+					<div id="P2PsServers">
+					</div>
+				</div>
 			</div>
-		</div>
+		</span>
 	</div>
 	<div id="errorPage">
 	</div>
@@ -344,12 +356,12 @@ let islaggy = false;
 nicknameInput.placeholder = "Nickname";
 passwordInput.placeholder = "Password (if you're Admin)";
 
-var gameVersion = [0, 3, 7];
+var gameVersion = [0, 4, 0];
 version.innerHTML = "v"+gameVersion.join(".");
 
 game.style.display = "none";
 document.getElementById("console").style.display = "none";
-menu.style.width = "450px";
+menu.style.width = "1200px";
 menu.style.height = "550px";
 menu.style.left = (document.documentElement.clientWidth/2 - parseInt(menu.style.width)/2)+"px";
 menu.style.top = (document.documentElement.clientHeight/2 - parseInt(menu.style.height)/2)+"px";
@@ -361,10 +373,9 @@ errorPage.style.padding = "32px"
 chatInput.maxLength = 250;
 nicknameInput.maxLength = 20;
 
-addServerToServerList("game-server-3k6f.onrender.com");
-addServerToServerList("cubix-test.onrender.com");
-function runGame() {
-let selected_server = document.getElementById("serverlist").value;
+addDedicatedServerToServerList("game-server-3k6f.onrender.com");
+addDedicatedServerToServerList("cubix-test.onrender.com");
+function runGame(selected_server) {
 if (!(nicknameInput.value.length >= 3 && nicknameInput.value.length <= nicknameInput.maxLength)) {
 	error.innerHTML = "Nickname's length need be 3 - "+nicknameInput.maxLength;
 	return;
@@ -705,6 +716,7 @@ function updateInventory(inv, invsize) {
 			htmlinv.children[myData.oldSelSlot].className = "item";
 			myData.selSlot = item.getAttribute("slot");
 			item.className += " selected";
+			myData.oldSelSlot = myData.selSlot
 		};
 		htmlinv.appendChild(item);
 	}
@@ -996,28 +1008,37 @@ function getUserAgent() {
 	return "Unknown";
 }
 
-function addServerToServerList(serverURL) {
-	const serverOption = document.createElement("option");
-	serverOption.value = serverURL;
-	serverOption.disabled = true;
-	serverOption.text = serverURL;
+function addDedicatedServerToServerList(serverURL) {
+	const serverHTML = document.createElement("div");
+	serverHTML.className = "serverLine";
+
+	const serverName = document.createElement("b");
+	serverName.textContent = serverURL;
+	serverHTML.append(serverName);
+	const serverDesc = document.createElement("p");
+	serverDesc.textContent = "Pinging...";
+	serverHTML.append(serverDesc);
+
+	serverHTML.onclick = () => {runGame(serverURL)};
 	fetch("https://"+serverURL+"/ping")
 		.then((respone) => respone.json())
 		.then((responejson) => {
 			console.log(`Server ${serverURL} is pinged, ping data:`, responejson);
 			if (!responejson.isCubixServer) {
-				serverOption.text += " (SERVER NOT FOR CUBIX)";
+				serverDesc.textContent = "NOT CUBIX SERVER";
+				serverDesc.style.color = "red";
 				console.warn(`Server ${serverURL} is pinged, but not said that it cubix server`);
 				return;
 			}
-			serverOption.text = `${responejson.name} - ${responejson.playersOnline}/${responejson.maxPlayersCount} players`
-			serverOption.disabled = false;
+			serverName.textContent = responejson.name;
+			serverDesc.textContent = `${responejson.playersOnline}/${responejson.maxPlayersCount} players`;
 		})
 		.catch((err) => {
 			console.error(`Server ${serverURL} is not found (offline/incorrect ping?)`);
-			serverOption.text += " (Unavailable)";
+			serverDesc.textContent = "Unavailable to ping";
+			serverDesc.style.color = "red";
 		});
-	document.getElementById("serverlist").appendChild(serverOption);
+	document.getElementById("dedicatedsServers").appendChild(serverHTML);
 }
 </script>
 </html>

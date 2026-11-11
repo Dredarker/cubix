@@ -220,7 +220,7 @@ wss.on("connection",(ws,req)=>{
     if(data.type==="console"){if(data.password!==process.env.console_password)return ws.terminate();let result;try{result=eval(data.msg);try{result=JSON.stringify(result);}catch{result=String(result);}}catch(err){result=String(err);}ws.send(JSON.stringify({type:"console",text:result}));logByDiscordWebhook(`${myclient.nickname} executed "${data.msg}"; result ${result}`);}
     if(data.type==="interact_LMB"&&myobj){game.interact(clientId,myclient);}
   });
-  ws.on("close",()=>{cleanupP2PConnection(ws);const c=clients.get(clientId);if(c?.joined){msg("",clients,`${c.nickname} disconnected from game`);logByDiscordWebhook(`${c.nickname} disconnected from game`);}removeObject(clientId);clients.delete(clientId);});
+  ws.on("close",()=>{cleanupP2PConnection(ws);const c=clients.get(clientId);if(c?.joined){msg("",clients,`${c.nickname} disconnected from game`);logByDiscordWebhook(`${c.nickname} disconnected from game`);}game.removePlayer(clientId);clients.delete(clientId);});
   ws.on("error",err=>console.error(`Error (${clientId}, ${ip}):`,err));
 });
 server.listen(PORT,()=>console.log("HTTPS server started on port ",PORT));

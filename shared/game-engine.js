@@ -397,13 +397,18 @@
       const item = player.inventory?.[player.selSlot];
 
       if (item === "pistol") {
-        this.createBullet(
-          player.x + player.width / 2,
-          player.y + player.height / 2,
-          mouseX / 50,
-          mouseY / 50,
-          { dmg: 12, owner: id, livetime: 100 }
-        );
+        // Mouse coordinates are a direction vector, not a speed value.
+        // This keeps projectile speed constant regardless of cursor distance.
+        const mouseDistance = Math.hypot(mouseX, mouseY);
+        if (mouseDistance > 0) {
+          this.createBullet(
+            player.x + player.width / 2,
+            player.y + player.height / 2,
+            mouseX / mouseDistance,
+            mouseY / mouseDistance,
+            { dmg: 12, owner: id, livetime: 100, speed: 15 }
+          );
+        }
       } else if (item === "block" && mouseDistance < range) {
         const width = 50;
         const height = 50;

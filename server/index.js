@@ -52,7 +52,7 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.url.startsWith("/client/")) {
+  if (req.url.startsWith("/client/") || req.url.startsWith("/shared/")) {
     const filePath = path.join(__dirname, "..", req.url.split("?")[0]);
     const contentTypes = { ".js": "application/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".wav": "audio/wav", ".mp3": "audio/mpeg" };
     try {

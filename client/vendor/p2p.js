@@ -802,6 +802,15 @@
     setP2PStatus("P2P directory unavailable: " + error.message, "red");
   });
 
+  window.CubixP2P = {
+    P2PDirectory,
+    HostP2PTransport,
+    GuestP2PTransport,
+    ensureP2PDirectory,
+    createP2PServer,
+    joinP2PRoom,
+  };
+
   window.addEventListener("beforeunload", () => {
     if (hostedP2PTransport) {
       try {

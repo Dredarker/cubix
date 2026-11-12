@@ -137,7 +137,7 @@
           isStatic: obj.mode === "static" || obj.ismap,
           label: String(id),
           restitution: 0,
-          friction: 0.1,
+          friction: 0.4,
           frictionAir: 0.01,
           inertia: Infinity,
         }

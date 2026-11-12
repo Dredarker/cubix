@@ -354,14 +354,35 @@
       );
     }
 
-    createBullet(x, y, vx, vy, options) {
+    createBullet(x, y, vx, vy, options = {}) {
       const id = "bullet_" + Math.random().toString(36).slice(2);
-      const bullet = this.createObj(x, y, 10, 10, "kinetic", "bullet", "");
-      bullet.damage = options.dmg;
-      bullet.owner = options.owner;
-      bullet.livetime = options.livetime;
+      const bullet = this.createObj(
+        x,
+        y,
+        options.width ?? 6,
+        options.height ?? 6,
+        "kinetic",
+        "bullet",
+        options.color ?? ""
+      );
+
+      bullet.damage = Number(options.dmg ?? 12);
+      bullet.owner = options.owner ?? null;
+      bullet.livetime = Number(options.livetime ?? 120);
+      bullet.bulletSpeed = Number(options.speed ?? 15);
+
       this.createObject(id, bullet);
-      Body.setVelocity(bullet.body, { x: vx, y: vy });
+
+      // Normalize the direction so the projectile always has the same speed.
+      const length = Math.hypot(Number(vx) || 0, Number(vy) || 0);
+      const directionX = length > 0 ? Number(vx) / length : 1;
+      const directionY = length > 0 ? Number(vy) / length : 0;
+
+      Body.setVelocity(bullet.body, {
+        x: directionX * bullet.bulletSpeed,
+        y: directionY * bullet.bulletSpeed,
+      });
+
       return id;
     }
 

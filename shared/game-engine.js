@@ -137,7 +137,7 @@
           isStatic: obj.mode === "static" || obj.ismap,
           label: String(id),
           restitution: 0,
-          friction: 0.1,
+          friction: 0.05,
           frictionAir: 0.01,
           inertia: Infinity,
         }
@@ -163,7 +163,7 @@
     addPlayer(id, nickname, color) {
       const player = this.createPlayer(
         nickname,
-        1,
+        1.2,
         -10,
         this.createObj(
           this.config.player.startX,
